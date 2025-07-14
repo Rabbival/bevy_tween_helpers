@@ -25,7 +25,7 @@ An example for registering the plugins into your app would be:
 ```rust
     app.add_plugins((
             DefaultTweenPlugins, //from bevy_tween
-            BevyTweenHelpersPlugin,
+            BevyTweenHelpersPlugin::default(),
             TweenTargetRemover::<MyGloriousInterpolator>::default(),
             TweenPriorityHandler::<MyGloriousInterpolator>::default(),
             AnimationParentDestroyerGenericPlugin::<MyGloriousInterpolator>::default(),
