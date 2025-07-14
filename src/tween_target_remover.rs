@@ -6,17 +6,17 @@ plugin_for_implementors_of_trait!(TweenTargetRemover, Sendable);
 
 impl<T: Sendable> Plugin for TweenTargetRemover<T> {
     fn build(&self, app: &mut App) {
-        app.add_observer(remove_entity_and_clear_tween_if_has_none::<T>)
-            .add_observer(remove_targets_from_all_tweens_targeting_them::<T>)
+        app.add_observer(remove_tween_target_on_animation_target_removal::<T>)
+            .add_observer(on_remove_targets_from_all_tweens_targeting_them_request::<T>)
             .add_systems(
                 Update,
-                listen_to_remove_entity_from_tween_targets_requests::<T>
+                listen_to_target_removal_requests::<T>
                     .in_set(TweenHelpersSystemSet::TargetRemoval),
             );
     }
 }
 
-fn remove_targets_from_all_tweens_targeting_them<T: Sendable>(
+fn on_remove_targets_from_all_tweens_targeting_them_request<T: Sendable>(
     trigger: Trigger<TweenRequest>,
     mut tweens_of_type: Query<(&mut ComponentTween<T>, Entity, Option<&Name>)>,
     logging_function: Res<TweeningLoggingFunction>,
@@ -39,7 +39,7 @@ fn remove_targets_from_all_tweens_targeting_them<T: Sendable>(
     }
 }
 
-fn remove_entity_and_clear_tween_if_has_none<T: Sendable>(
+fn remove_tween_target_on_animation_target_removal<T: Sendable>(
     trigger: Trigger<OnRemove, AnimationTarget>,
     mut query: Query<(&mut ComponentTween<T>, Option<&Name>, Entity)>,
     logging_function: Res<TweeningLoggingFunction>,
@@ -57,7 +57,7 @@ fn remove_entity_and_clear_tween_if_has_none<T: Sendable>(
     }
 }
 
-fn listen_to_remove_entity_from_tween_targets_requests<T: Sendable>(
+fn listen_to_target_removal_requests<T: Sendable>(
     mut tween_request_reader: EventReader<TweenRequest>,
     mut tweens_of_type: Query<(&mut ComponentTween<T>, Option<&Name>)>,
     logging_function: Res<TweeningLoggingFunction>,

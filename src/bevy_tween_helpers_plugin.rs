@@ -1,5 +1,6 @@
 use crate::prelude::*;
 
+#[derive(Debug, Default)]
 pub struct BevyTweenHelpersPlugin {
     /// Here you can insert your own function for logging BevyTweenHelpersPlugin
     pub logging_function: Option<fn(String)>,
@@ -13,7 +14,6 @@ impl Plugin for BevyTweenHelpersPlugin {
         app.insert_resource(TweeningLoggingFunction(self.logging_function.clone()))
             .add_plugins((
                 TweenRequestPlugin,
-                DefaultTweenPlugins,
                 AnimationParentDestroyerPlugin,
                 BevyTweenHelpersSystemSetsPlugin
             ));

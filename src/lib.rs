@@ -1,5 +1,24 @@
 #![allow(clippy::type_complexity)]
 
+/*!
+## Using The Crate
+
+* First, you should add `BevyTweenHelpersPlugin`, to which you can add a logging function of your choice.
+* Then, register each of the following plugins for each interpolator type you wish to apply them to:
+  * `AnimationParentDestroyerGenericPlugin`
+    * Automatically despawns animation parents if it has no children left, for example a parent with no tweens
+  * `TweenTargetRemover`
+    * Automatically removes entities from tween targets when their `AnimationTarget` component is removed
+    * Listens to target removal tween requests and triggers
+    * Combining it with `AnimationParentDestroyerGenericPlugin` results in automatic tween and parent clearing
+  * `TweenPriorityHandler`
+    * Handles `TweenPriorityToOthersOfType`, when tweens or parents have this component,
+    fight against other tweens of that type. The ones with the highest priority will survive.
+    * If you're not sure what the previous bullet means, read `TweenPriorityToOthersOfType`'s description
+
+* I also added my tween combinators, feel free to open PRs requesting to add your own!
+
+*/
 
 pub mod animation_parent_destoryer;
 pub mod custom_combinators;
