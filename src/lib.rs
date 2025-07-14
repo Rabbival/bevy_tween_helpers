@@ -18,6 +18,20 @@
 
 * I also added my tween combinators, feel free to open PRs requesting to add your own!
 
+
+### Example
+
+An example for registering the plugins into your app would be:
+```rust
+    app.add_plugins((
+            DefaultTweenPlugins, //from bevy_tween
+            BevyTweenHelpersPlugin,
+            TweenTargetRemover::<MyGloriousInterpolator>::default(),
+            TweenPriorityHandler::<MyGloriousInterpolator>::default(),
+            AnimationParentDestroyerGenericPlugin::<MyGloriousInterpolator>::default(),
+        ))
+        .add_tween_systems(component_tween_system::<MyGloriousInterpolator>()); //from bevy_tween
+```
 */
 
 pub mod animation_parent_destoryer;
