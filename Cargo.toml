@@ -1,0 +1,16 @@
+[package]
+name = "bevy_tween_helpers"
+version = "0.1.0"
+edition = "2024"
+repository = "" #TODO
+homepage = "" #TODO
+license = "MIT OR Apache-2.0"
+description = "Optional, additional utilities for the bevy_tween crate"
+authors = ["Rabbival"]
+readme = "README.md"
+keywords = ["bevy", "tween", "tweening"]
+categories = ["game-development"]
+
+[dependencies]
+bevy = "0.16.1"
+bevy_tween = "0.9.0"
