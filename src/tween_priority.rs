@@ -12,8 +12,8 @@ use bevy_tween::tween::TargetComponent;
 /// (applies to all tween children) or the specific tween.
 /// If the tween has a specified priority, it overrides that of its parent
 ///
-/// IMPORTANT: For tween type not added here, it wouldn't work unless the tween type
-/// is registered in the generic plugins.
+/// Possible bug causer to be aware of: 
+/// Note that if you spawn two tweens with the same priority at the same time, both will be destoryed.
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Component)]
 pub struct TweenPriorityToOthersOfType(pub u32);
@@ -29,6 +29,9 @@ impl<T: Sendable> Plugin for TweenPriorityHandler<T> {
     }
 }
 
+/// The entire logic of keeping one tween over the other only runs when a new tween with priority is spawned
+/// or a new tween is spawned as a child to a parent with a priority. If a tween has no `TweenPriorityToOthersOfType`,
+/// the tween priority logic ignores it.
 fn handle_tween_priority_on_spawn<T: Sendable>(
     mut tween_request_writer: EventWriter<TweenRequest>,
     tween_priorities_query: Query<&TweenPriorityToOthersOfType>,
@@ -53,26 +56,23 @@ fn handle_tween_priority_on_spawn<T: Sendable>(
     for (newborn_tween, child_of, newborn_tween_entity, maybe_tween_priority, maybe_tween_name) in
         &newborn_tweens_query
     {
-        if let Some(logger) = logging_function.0 {
-            logger(format!(
-                "{} spawned, looking for tweens to destroy by priority",
-                maybe_tween_name.unwrap_or(&Name::new("A nameless tween with priority"))
-            ));
-        }
-        if let Some(priority) = maybe_tween_priority {
+        let maybe_priority = if let Some(tween_priority) = maybe_tween_priority {
+            Some(tween_priority)
+        }else if let Ok(parent_priority) = tween_priorities_query.get(child_of.parent()){
+            Some(parent_priority)
+        }else{
+            None
+        };
+        if let Some(priority) = maybe_priority {
+            if let Some(logger) = logging_function.0 {
+                logger(format!(
+                    "{} spawned, looking for tweens to destroy by priority",
+                    maybe_tween_name.unwrap_or(&Name::new("A nameless tween with priority"))
+                ));
+            }
             handle_tween_priority_to_others_of_type(
                 &mut tween_request_writer,
                 priority,
-                newborn_tween,
-                newborn_tween_entity,
-                child_of,
-                &all_tweens_of_type,
-                &tween_priorities_query,
-            );
-        } else if let Ok(parent_priority) = tween_priorities_query.get(child_of.parent()) {
-            handle_tween_priority_to_others_of_type(
-                &mut tween_request_writer,
-                parent_priority,
                 newborn_tween,
                 newborn_tween_entity,
                 child_of,
