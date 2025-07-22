@@ -2,7 +2,6 @@ use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
 use bevy::prelude::Component;
 use bevy_tween::prelude::ComponentTween;
-use bevy_tween::tween::TargetComponent;
 
 /// When there's a conflict between two existing tweens of the same type
 /// (say, two position tweens on the same entity)
@@ -12,7 +11,7 @@ use bevy_tween::tween::TargetComponent;
 /// (applies to all tween children) or the specific tween.
 /// If the tween has a specified priority, it overrides that of its parent
 ///
-/// Possible bug causer to be aware of: 
+/// Possible bug causer to be aware of:
 /// Note that if you spawn two tweens with the same priority at the same time, both will be destoryed.
 ///
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Component)]
@@ -58,9 +57,9 @@ fn handle_tween_priority_on_spawn<T: Sendable>(
     {
         let maybe_priority = if let Some(tween_priority) = maybe_tween_priority {
             Some(tween_priority)
-        }else if let Ok(parent_priority) = tween_priorities_query.get(child_of.parent()){
+        } else if let Ok(parent_priority) = tween_priorities_query.get(child_of.parent()) {
             Some(parent_priority)
-        }else{
+        } else {
             None
         };
         if let Some(priority) = maybe_priority {
@@ -139,24 +138,16 @@ fn try_get_other_tween_priority(
     }
 }
 
-fn remove_intersecting_targets_for_weaker_tween<T: Sendable>(
+pub fn remove_intersecting_targets_for_weaker_tween<T: Sendable>(
     tween_request_writer: &mut EventWriter<TweenRequest>,
     dominant_tween: &ComponentTween<T>,
     weaker_tween_entity: Entity,
 ) {
-    match &dominant_tween.target {
-        TargetComponent::Entity(dominant_target) => {
-            tween_request_writer.write(TweenRequest::RemoveEntity(RemoveTweenTargets {
-                tween_entity: weaker_tween_entity,
-                targets_to_remove: vec![*dominant_target],
-            }));
-        }
-        TargetComponent::Entities(dominant_targets) => {
-            tween_request_writer.write(TweenRequest::RemoveEntity(RemoveTweenTargets {
-                tween_entity: weaker_tween_entity,
-                targets_to_remove: dominant_targets.clone(),
-            }));
-        }
-        _ => {}
+    let dominant_tween_targets = get_tween_targets(dominant_tween);
+    if !dominant_tween_targets.is_empty() {
+        tween_request_writer.write(TweenRequest::RemoveEntity(RemoveTweenTargets {
+            tween_entity: weaker_tween_entity,
+            targets_to_remove: dominant_tween_targets,
+        }));
     }
 }

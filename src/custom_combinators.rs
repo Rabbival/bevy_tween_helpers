@@ -27,3 +27,26 @@ where
         *pos = end;
     }
 }
+
+pub fn tween_with_priority<I, T>(
+    duration: Duration,
+    interpolation: I,
+    tween: T,
+    priority: u32,
+) -> impl FnOnce(&mut AnimationCommands, &mut Duration)
+where
+    I: Bundle,
+    T: Bundle,
+{
+    move |a, pos| {
+        let start = *pos;
+        let end = start + duration;
+        a.spawn((
+            TimeSpan::try_from(start..end).unwrap(),
+            interpolation,
+            tween,
+            TweenPriorityToOthersOfType(priority),
+        ));
+        *pos = end;
+    }
+}
