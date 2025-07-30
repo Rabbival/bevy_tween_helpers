@@ -29,7 +29,7 @@ fn track_newborn_tween_targets<T: Sendable>(
     for (tween, tween_entity) in &newborn_tweens {
         for target in get_tween_targets(tween) {
             if let Ok(mut entity_commands) = commands.get_entity(target) {
-                entity_commands.insert(TweenTargetOf(tween_entity));
+                entity_commands.try_insert(TweenTargetOf(tween_entity));
             }
         }
     }
