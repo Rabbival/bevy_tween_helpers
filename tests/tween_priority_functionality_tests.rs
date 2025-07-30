@@ -1,9 +1,8 @@
 use bevy::ecs::system::ScheduleSystem;
-use bevy_tween::combinator::{AnimationBuilderExt, AnimationCommands};
+use bevy_tween::combinator::AnimationBuilderExt;
 use bevy_tween::interpolation::EaseKind;
 use bevy_tween::prelude::{Interpolator, IntoTarget};
 use bevy_tween::tween::ComponentTween;
-use bevy_tween_helpers::prelude::bevy_time_runner::TimeSpan;
 use bevy_tween_helpers::prelude::*;
 use std::time::Duration;
 
@@ -63,26 +62,18 @@ fn spawn_tweens_with_priorities(mut commands: Commands) {
     let animation_target = entity.into_target();
     let mut state = animation_target.state(());
 
-    commands
-        .spawn(())
-        .animation()
-        .insert(tween_with_priority_and_tag(
-            TWEEN_DURATION,
-            EaseKind::Linear,
-            state.with(move |_state| MePolator),
-            10,
-            A,
-        ));
-    commands
-        .spawn(())
-        .animation()
-        .insert(tween_with_priority_and_tag(
-            TWEEN_DURATION,
-            EaseKind::Linear,
-            state.with(move |_state| MePolator),
-            9,
-            B,
-        ));
+    commands.spawn(()).animation().insert(tween_with_components(
+        TWEEN_DURATION,
+        EaseKind::Linear,
+        state.with(move |_state| MePolator),
+        (TweenPriorityToOthersOfType(10), A),
+    ));
+    commands.spawn(()).animation().insert(tween_with_components(
+        TWEEN_DURATION,
+        EaseKind::Linear,
+        state.with(move |_state| MePolator),
+        (TweenPriorityToOthersOfType(9), B),
+    ));
 }
 
 fn assert_destruction_of_b(
@@ -98,17 +89,13 @@ fn spawn_tween_with_priority_and_one_without(mut commands: Commands) {
     let animation_target = entity.into_target();
     let mut state = animation_target.state(());
 
-    commands
-        .spawn(())
-        .animation()
-        .insert(tween_with_priority_and_tag(
-            TWEEN_DURATION,
-            EaseKind::Linear,
-            state.with(move |_state| MePolator),
-            10,
-            A,
-        ));
-    commands.spawn(()).animation().insert(tween_with_tag(
+    commands.spawn(()).animation().insert(tween_with_components(
+        TWEEN_DURATION,
+        EaseKind::Linear,
+        state.with(move |_state| MePolator),
+        (TweenPriorityToOthersOfType(10), A),
+    ));
+    commands.spawn(()).animation().insert(tween_with_components(
         TWEEN_DURATION,
         EaseKind::Linear,
         state.with(move |_state| MePolator),
@@ -129,20 +116,16 @@ fn spawn_tween_with_priority_and_one_with_parent_priority(mut commands: Commands
     let animation_target = entity.into_target();
     let mut state = animation_target.state(());
 
-    commands
-        .spawn(())
-        .animation()
-        .insert(tween_with_priority_and_tag(
-            TWEEN_DURATION,
-            EaseKind::Linear,
-            state.with(move |_state| MePolator),
-            10,
-            A,
-        ));
+    commands.spawn(()).animation().insert(tween_with_components(
+        TWEEN_DURATION,
+        EaseKind::Linear,
+        state.with(move |_state| MePolator),
+        (TweenPriorityToOthersOfType(10), A),
+    ));
     commands
         .spawn(TweenPriorityToOthersOfType(9))
         .animation()
-        .insert(tween_with_tag(
+        .insert(tween_with_components(
             TWEEN_DURATION,
             EaseKind::Linear,
             state.with(move |_state| MePolator),
@@ -159,54 +142,6 @@ struct A;
 
 #[derive(Clone, Copy, Debug, Component)]
 struct B;
-
-fn tween_with_priority_and_tag<I, T>(
-    duration: Duration,
-    interpolation: I,
-    tween: T,
-    priority: u32,
-    tag: impl Component,
-) -> impl FnOnce(&mut AnimationCommands, &mut Duration)
-where
-    I: Bundle,
-    T: Bundle,
-{
-    move |a, pos| {
-        let start = *pos;
-        let end = start + duration;
-        a.spawn((
-            TimeSpan::try_from(start..end).unwrap(),
-            interpolation,
-            tween,
-            TweenPriorityToOthersOfType(priority),
-            tag,
-        ));
-        *pos = end;
-    }
-}
-
-fn tween_with_tag<I, T>(
-    duration: Duration,
-    interpolation: I,
-    tween: T,
-    tag: impl Component,
-) -> impl FnOnce(&mut AnimationCommands, &mut Duration)
-where
-    I: Bundle,
-    T: Bundle,
-{
-    move |a, pos| {
-        let start = *pos;
-        let end = start + duration;
-        a.spawn((
-            TimeSpan::try_from(start..end).unwrap(),
-            interpolation,
-            tween,
-            tag,
-        ));
-        *pos = end;
-    }
-}
 
 #[derive(Clone, Copy, Debug)]
 struct MePolator;

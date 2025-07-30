@@ -50,3 +50,36 @@ where
         *pos = end;
     }
 }
+
+pub fn wait_for(wait_duration: Duration) -> impl FnOnce(&mut AnimationCommands, &mut Duration) {
+    move |a, pos| {
+        let start = *pos;
+        let end = start + wait_duration;
+        a.spawn(TimeSpan::try_from(start..end).unwrap());
+        *pos = end;
+    }
+}
+
+pub fn tween_with_components<I, T, B>(
+    duration: Duration,
+    interpolation: I,
+    tween: T,
+    additional_components: B,
+) -> impl FnOnce(&mut AnimationCommands, &mut Duration)
+where
+    I: Bundle,
+    T: Bundle,
+    B: Bundle,
+{
+    move |a, pos| {
+        let start = *pos;
+        let end = start + duration;
+        a.spawn((
+            TimeSpan::try_from(start..end).unwrap(),
+            interpolation,
+            tween,
+            additional_components,
+        ));
+        *pos = end;
+    }
+}
