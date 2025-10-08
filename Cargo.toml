@@ -12,10 +12,10 @@ keywords = ["bevy", "tween", "tweening"]
 categories = ["game-development"]
 
 [dependencies]
-bevy_tween = "0.9.1"
+bevy_tween = "0.10.0"
 
 [dependencies.bevy]
-version = "0.16.1"
+version = "0.17.2"
 default-features = false
 features = [
     "bevy_core_pipeline",

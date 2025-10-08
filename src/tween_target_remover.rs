@@ -36,7 +36,7 @@ fn track_newborn_tween_targets<T: Sendable>(
 }
 
 fn on_remove_targets_from_all_tweens_targeting_them_request<T: Sendable>(
-    trigger: Trigger<TweenRequest>,
+    trigger: On<TweenRequest>,
     mut tweens_of_type: Query<(&mut ComponentTween<T>, Entity, Option<&Name>)>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
@@ -47,7 +47,7 @@ fn on_remove_targets_from_all_tweens_targeting_them_request<T: Sendable>(
         }
         for (mut tween, tween_entity, maybe_tween_name) in &mut tweens_of_type {
             remove_target_and_destroy_if_has_none(
-                entities,
+                &entities,
                 tween_entity,
                 &mut tween,
                 maybe_tween_name,
@@ -59,14 +59,14 @@ fn on_remove_targets_from_all_tweens_targeting_them_request<T: Sendable>(
 }
 
 fn remove_tween_target_on_target_despawn<T: Sendable>(
-    trigger: Trigger<OnRemove, TweenTargetOf>,
+    trigger: On<Remove, TweenTargetOf>,
     mut query: Query<(&mut ComponentTween<T>, Option<&Name>, Entity)>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
 ) {
     for (mut tween, maybe_tween_name, tween_entity) in &mut query {
         remove_target_and_destroy_if_has_none(
-            &vec![trigger.target()],
+            &vec![trigger.entity],
             tween_entity,
             &mut tween,
             maybe_tween_name,
@@ -77,7 +77,7 @@ fn remove_tween_target_on_target_despawn<T: Sendable>(
 }
 
 fn listen_to_target_removal_requests<T: Sendable>(
-    mut tween_request_reader: EventReader<TweenRequest>,
+    mut tween_request_reader: MessageReader<TweenRequest>,
     mut tweens_of_type: Query<(&mut ComponentTween<T>, Option<&Name>)>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,

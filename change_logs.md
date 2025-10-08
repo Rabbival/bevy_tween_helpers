@@ -2,6 +2,10 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.2.0
+
+* Update to bevy 0.17
+
 ### 0.1.2 -> 0.1.3
 
 * Tag tween targets with `TweenTargetOf` so that they can be automatically tracked

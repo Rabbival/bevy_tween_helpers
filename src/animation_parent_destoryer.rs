@@ -21,12 +21,12 @@ impl<T: Sendable> Plugin for AnimationParentDestroyerGenericPlugin<T> {
 }
 
 pub fn despawn_done_time_runners(
-    mut time_runner_ended_reader: EventReader<TimeRunnerEnded>,
+    mut time_runner_ended_reader: MessageReader<TimeRunnerEnded>,
     mut commands: Commands,
 ) {
     for event in time_runner_ended_reader.read() {
         if event.is_completed() {
-            if let Ok(mut entity_commands) = commands.get_entity(event.time_runner) {
+            if let Ok(mut entity_commands) = commands.get_entity(event.entity) {
                 entity_commands.try_despawn();
             }
         }
@@ -34,13 +34,13 @@ pub fn despawn_done_time_runners(
 }
 
 pub fn despawn_time_runners_with_no_children<T: Sendable>(
-    trigger: Trigger<OnRemove, ComponentTween<T>>,
+    trigger: On<Remove, ComponentTween<T>>,
     time_runners: Query<(&Children, Entity), With<TimeRunner>>,
     mut commands: Commands,
 ) {
     'time_runners_for: for (time_runner_children, time_runner_entity) in &time_runners {
         for child in time_runner_children.iter() {
-            if child != trigger.target() {
+            if child != trigger.entity {
                 continue 'time_runners_for;
             }
         }

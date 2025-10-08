@@ -32,7 +32,7 @@ impl<T: Sendable> Plugin for TweenPriorityHandler<T> {
 /// or a new tween is spawned as a child to a parent with a priority. If a tween has no `TweenPriorityToOthersOfType`,
 /// the tween priority logic ignores it.
 fn handle_tween_priority_on_spawn<T: Sendable>(
-    mut tween_request_writer: EventWriter<TweenRequest>,
+    mut tween_request_writer: MessageWriter<TweenRequest>,
     tween_priorities_query: Query<&TweenPriorityToOthersOfType>,
     all_tweens_of_type: Query<(
         &ComponentTween<T>,
@@ -83,7 +83,7 @@ fn handle_tween_priority_on_spawn<T: Sendable>(
 }
 
 fn handle_tween_priority_to_others_of_type<T: Sendable>(
-    tween_request_writer: &mut EventWriter<TweenRequest>,
+    tween_request_writer: &mut MessageWriter<TweenRequest>,
     tween_priority: &TweenPriorityToOthersOfType,
     newborn_tween: &ComponentTween<T>,
     newborn_tween_entity: Entity,
@@ -139,7 +139,7 @@ fn try_get_other_tween_priority(
 }
 
 pub fn remove_intersecting_targets_for_weaker_tween<T: Sendable>(
-    tween_request_writer: &mut EventWriter<TweenRequest>,
+    tween_request_writer: &mut MessageWriter<TweenRequest>,
     dominant_tween: &ComponentTween<T>,
     weaker_tween_entity: Entity,
 ) {

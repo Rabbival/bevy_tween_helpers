@@ -1,6 +1,6 @@
 use crate::prelude::*;
 
-#[derive(Debug, Clone, Event)]
+#[derive(Debug, Clone, Message, Event)]
 pub enum TweenRequest {
     RemoveEntity(RemoveTweenTargets),
     RemoveTargetsFromAllTweensTargetingThem(Vec<Entity>),
@@ -16,6 +16,6 @@ pub struct TweenRequestPlugin;
 
 impl Plugin for TweenRequestPlugin {
     fn build(&self, app: &mut App) {
-        app.add_event::<TweenRequest>();
+        app.add_message::<TweenRequest>();
     }
 }
