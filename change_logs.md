@@ -2,6 +2,10 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.2.1
+
+* Add `ExtraTransformTweenMakers`, which are currently "delta to" tweens for transform
+
 ### 0.2.0
 
 * Update to bevy 0.17

@@ -39,6 +39,7 @@ pub mod macros;
 pub mod animation_parent_destoryer;
 pub mod bevy_tween_helpers_plugin;
 pub mod custom_combinators;
+pub mod extra_transform_tween_makers;
 pub mod target_extractor;
 pub mod tween_priority;
 pub mod tween_request;
@@ -49,6 +50,7 @@ pub mod prelude {
     pub use crate::animation_parent_destoryer::*;
     pub use crate::bevy_tween_helpers_plugin::*;
     pub use crate::custom_combinators::*;
+    pub use crate::extra_transform_tween_makers::*;
     pub use crate::target_extractor::*;
     pub use crate::tween_priority::*;
     pub use crate::tween_request::*;
