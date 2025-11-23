@@ -12,7 +12,7 @@ pub struct RemoveTweenTargets {
     pub targets_to_remove: Vec<Entity>,
 }
 
-#[derive(Debug, Clone, Message, Event)]
+#[derive(Debug, Clone, Message, Event, Default)]
 pub struct RemoveTargetsFromAllTweensOfType<T: Sendable> {
     pub targets: Vec<Entity>,
     _phantom: PhantomData<T>,

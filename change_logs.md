@@ -2,7 +2,7 @@
 
 [(Click me to go back to the main readme)](README.md)
 
-### 0.2.2
+### 0.2.3
 
 * Add `RemoveTargetsFromAllTweensOfType<T: Sendable>` to let users request removal of targets from tweens of specific types
 
