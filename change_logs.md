@@ -2,6 +2,10 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.2.2
+
+* Add `RemoveTargetsFromAllTweensOfType<T: Sendable>` to let users request removal of targets from tweens of specific types
+
 ### 0.2.1
 
 * Add `ExtraTransformTweenMakers`, which are currently "delta to" tweens for transform

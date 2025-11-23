@@ -8,7 +8,9 @@ plugin_for_implementors_of_trait!(TweenTargetRemover, Sendable);
 
 impl<T: Sendable> Plugin for TweenTargetRemover<T> {
     fn build(&self, app: &mut App) {
-        app.add_observer(remove_tween_target_on_target_despawn::<T>)
+        app.add_message::<RemoveTargetsFromAllTweensOfType<T>>()
+            .add_observer(remove_tween_target_on_target_despawn::<T>)
+            .add_observer(on_remove_targets_from_tweens_of_type::<T>)
             .add_observer(on_remove_targets_from_all_tweens_targeting_them_request::<T>)
             .add_systems(
                 Update,
@@ -32,6 +34,28 @@ fn track_newborn_tween_targets<T: Sendable>(
                 entity_commands.try_insert(TweenTargetOf(tween_entity));
             }
         }
+    }
+}
+
+fn on_remove_targets_from_tweens_of_type<T: Sendable>(
+    trigger: On<RemoveTargetsFromAllTweensOfType<T>>,
+    mut tweens_of_type: Query<(&mut ComponentTween<T>, Entity, Option<&Name>)>,
+    logging_function: Res<TweeningLoggingFunction>,
+    mut commands: Commands,
+) {
+    let entities = &trigger.targets;
+    if entities.is_empty() {
+        return;
+    }
+    for (mut tween, tween_entity, maybe_tween_name) in &mut tweens_of_type {
+        remove_target_and_destroy_if_has_none(
+            entities,
+            tween_entity,
+            &mut tween,
+            maybe_tween_name,
+            &logging_function.0,
+            &mut commands,
+        );
     }
 }
 
