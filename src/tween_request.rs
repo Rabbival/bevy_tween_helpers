@@ -12,10 +12,19 @@ pub struct RemoveTweenTargets {
     pub targets_to_remove: Vec<Entity>,
 }
 
-#[derive(Debug, Clone, Message, Event, Default)]
+#[derive(Debug, Clone, Message, Event)]
 pub struct RemoveTargetsFromAllTweensOfType<T: Sendable> {
     pub targets: Vec<Entity>,
     _phantom: PhantomData<T>,
+}
+
+impl<T: Sendable> RemoveTargetsFromAllTweensOfType<T> {
+    pub fn new(targets: Vec<Entity>) -> Self {
+        Self {
+            targets,
+            _phantom: PhantomData::default(),
+        }
+    }
 }
 
 pub struct TweenRequestPlugin;
