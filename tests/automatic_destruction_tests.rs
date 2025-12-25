@@ -1,6 +1,7 @@
-use bevy_tween::combinator::AnimationBuilderExt;
+use bevy_tween::combinator::{AnimationBuilderExt, TargetState, event, sequence};
 use bevy_tween::interpolation::EaseKind;
 use bevy_tween::prelude::{Interpolator, IntoTarget};
+use bevy_tween::tween::TargetComponent;
 use bevy_tween_helpers::prelude::*;
 use std::time::Duration;
 
@@ -51,6 +52,61 @@ fn test_automatic_tween_destruction() {
     assert_eq!(parents_after_despawn, 0);
 }
 
+#[test]
+fn test_automatic_tween_destruction_on_event_mark() {
+    let mut app = App::new();
+
+    app.add_systems(
+        Update,
+        spawn_tweens_for_event_parent_test.before(TweenHelpersSystemSet::PreTargetRemoval),
+    );
+    app.insert_resource(TweeningLoggingFunction(Some(log)));
+    app.add_plugins((
+        TweenRequestPlugin,
+        BevyTweenHelpersSystemSetsPlugin,
+        TweenTargetRemover::<MePolator>::default(),
+        AnimationParentDestroyerGenericPlugin::<MePolator>::default(),
+    ));
+
+    app.update();
+
+    let normal_parents_before_despawn = app
+        .world_mut()
+        .query::<&AnimationParentTag>()
+        .iter(app.world())
+        .len();
+    let event_tagged_parents_before_despawn = app
+        .world_mut()
+        .query::<&AnimationParentToDestroyIfOnlyHasEventsLeft>()
+        .iter(app.world())
+        .len();
+
+    app.add_systems(
+        Update,
+        despawn_target_entity
+            .after(spawn_tween)
+            .before(TweenHelpersSystemSet::PreTargetRemoval),
+    );
+
+    app.update();
+
+    let normal_parents_after_despawn = app
+        .world_mut()
+        .query::<&AnimationParentTag>()
+        .iter(app.world())
+        .len();
+    let event_tagged_parents_after_despawn = app
+        .world_mut()
+        .query::<&AnimationParentToDestroyIfOnlyHasEventsLeft>()
+        .iter(app.world())
+        .len();
+
+    assert_eq!(normal_parents_before_despawn, 1);
+    assert_eq!(normal_parents_after_despawn, 1);
+    assert_eq!(event_tagged_parents_before_despawn, 1);
+    assert_eq!(event_tagged_parents_after_despawn, 0);
+}
+
 fn log(log_me: String) {
     println!("{}", log_me);
 }
@@ -72,6 +128,43 @@ fn spawn_tween(mut commands: Commands, target_entities: Query<&TargetEntityTag>)
             state.with(move |_state| MePolator),
             TweenTag,
         ));
+}
+
+fn spawn_tweens_for_event_parent_test(
+    mut commands: Commands,
+    target_entities: Query<&TargetEntityTag>,
+) {
+    if !target_entities.is_empty() {
+        return;
+    }
+
+    let make_animation_with_event = |mut state: TargetState<TargetComponent, ()>| {
+        sequence((
+            tween_with_components(
+                Duration::from_secs_f32(30.0),
+                EaseKind::Linear,
+                state.with(move |_state| MePolator),
+                TweenTag,
+            ),
+            event("event"),
+        ))
+    };
+
+    let target_one = commands.spawn(TargetEntityTag).id();
+    let animation_target_one = target_one.into_target();
+    let state_one = animation_target_one.state(());
+    let target_two = commands.spawn(TargetEntityTag).id();
+    let animation_target_two = target_two.into_target();
+    let state_two = animation_target_two.state(());
+
+    commands
+        .spawn(AnimationParentTag)
+        .animation()
+        .insert(make_animation_with_event(state_one));
+    commands
+        .spawn(AnimationParentToDestroyIfOnlyHasEventsLeft)
+        .animation()
+        .insert(make_animation_with_event(state_two));
 }
 
 fn despawn_target_entity(

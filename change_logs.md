@@ -2,6 +2,10 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.2.4
+
+* Add `AnimationParentToDestroyIfOnlyHasEventsLeft` to let users mark animation parents that should be destroyed if they only have `event()` tweens left
+
 ### 0.2.3
 
 * Add `RemoveTargetsFromAllTweensOfType<T: Sendable>` to let users request removal of targets from tweens of specific types
