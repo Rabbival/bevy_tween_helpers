@@ -57,7 +57,7 @@ pub fn despawn_time_runners_with_no_children<T: Sendable>(
     {
         for child in time_runner_children.iter() {
             if child != trigger.entity
-                && (!should_destroy_if_only_has_events || event_tweens.contains(child))
+                && (!should_destroy_if_only_has_events && !event_tweens.contains(child))
             {
                 continue 'time_runners_for;
             }
