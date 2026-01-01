@@ -2,12 +2,12 @@
 
 [(Click me to go back to the main readme)](README.md)
 
-### 0.2.6
+### 0.3.0
 
 * Fix logic that destroys animation parents with just event-emitting-tweens left to work for custom user events as well
 * Add `EventAnimationParentTaggerPlugin` which, if added to the app, automatically tags animation parents with event-emitting-tween children to be destroyed if they only have the event emitter children left
 
-### 0.2.5 - yanked due to logic bug, see fixed changed in 0.2.6
+### 0.2.5-6 - yanked due to logic bug, see fixed changed in 0.3.0
 
 ### 0.2.4
 
