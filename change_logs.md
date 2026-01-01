@@ -2,6 +2,11 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.2.5
+
+* Fix logic that destroys animation parents with just event-emitting-tweens left to work for custom user events as well
+* Add `EventAnimationParentTaggerPlugin` which, if added to the app, automatically tags animation parents with event-emitting-tween children to be destroyed if they only have the event emitter children left
+
 ### 0.2.4
 
 * Add `AnimationParentToDestroyIfOnlyHasEventsLeft` to let users mark animation parents that should be destroyed if they only have `event()` tweens left
