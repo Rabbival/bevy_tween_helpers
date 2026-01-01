@@ -7,6 +7,8 @@
 * Then, register each of the following plugins for each interpolator type you wish to apply them to:
   * `AnimationParentDestroyerGenericPlugin`
     * Automatically despawns animation parents if it has no children left, for example a parent with no tweens
+    * Automaitcally despawns animation parents tagged with `AnimationParentToDestroyIfOnlyHasEventsLeft` if they only have event-emitting tweens left
+    * If `EventAnimationParentTaggerPlugin` is added as well, automatically tags animation parents with `AnimationParentToDestroyIfOnlyHasEventsLeft` if they have event-emitting tweens
   * `TweenTargetRemover`
     * Automatically removes entities from tween targets when their `AnimationTarget` component is removed
     * Listens to target removal tween requests and triggers
@@ -15,7 +17,7 @@
     * Handles `TweenPriorityToOthersOfType`, when tweens or parents have this component,
     fight against other tweens of that type. The ones with the highest priority will survive.
     * If you're not sure what the previous bullet means, read `TweenPriorityToOthersOfType`'s description
-
+    *
 * I also added my tween combinators, feel free to open PRs requesting to add your own!
 
 
@@ -29,6 +31,7 @@ An example for registering the plugins into your app would be:
             TweenTargetRemover::<MyGloriousInterpolator>::default(),
             TweenPriorityHandler::<MyGloriousInterpolator>::default(),
             AnimationParentDestroyerGenericPlugin::<MyGloriousInterpolator>::default(),
+            EventAnimationParentTaggerPlugin,
         ))
         .add_tween_systems(component_tween_system::<MyGloriousInterpolator>()); //from bevy_tween
 ```
@@ -39,6 +42,7 @@ pub mod macros;
 pub mod animation_parent_destoryer;
 pub mod bevy_tween_helpers_plugin;
 pub mod custom_combinators;
+pub mod event_animation_parent_tagger;
 pub mod extra_transform_tween_makers;
 pub mod target_extractor;
 pub mod tween_priority;
@@ -50,6 +54,7 @@ pub mod prelude {
     pub use crate::animation_parent_destoryer::*;
     pub use crate::bevy_tween_helpers_plugin::*;
     pub use crate::custom_combinators::*;
+    pub use crate::event_animation_parent_tagger::*;
     pub use crate::extra_transform_tween_makers::*;
     pub use crate::target_extractor::*;
     pub use crate::tween_priority::*;

@@ -46,7 +46,7 @@ pub fn despawn_time_runners_with_no_children<T: Sendable>(
         ),
         With<TimeRunner>,
     >,
-    event_tweens: Query<(), With<TweenEventData>>,
+    event_tweens: Query<(), With<EventEmittingTween>>,
     mut commands: Commands,
 ) {
     'time_runners_for: for (
