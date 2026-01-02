@@ -107,6 +107,50 @@ fn test_automatic_tween_destruction_on_event_mark() {
     assert_eq!(event_tagged_parents_after_despawn, 0);
 }
 
+#[test]
+fn test_automatic_event_emitting_tween_animation_parent_tagging() {
+    let mut app = App::new();
+
+    app.add_systems(
+        Update,
+        spawn_tweens_for_event_parent_test.before(TweenHelpersSystemSet::PreTargetRemoval),
+    );
+    app.insert_resource(TweeningLoggingFunction(Some(log)));
+    app.add_plugins((
+        TweenRequestPlugin,
+        BevyTweenHelpersSystemSetsPlugin,
+        EventAnimationParentTaggerPlugin,
+        TweenTargetRemover::<MePolator>::default(),
+        AnimationParentDestroyerGenericPlugin::<MePolator>::default(),
+    ));
+
+    app.update();
+
+    let event_tagged_parents_before_despawn = app
+        .world_mut()
+        .query::<&AnimationParentToDestroyIfOnlyHasEventsLeft>()
+        .iter(app.world())
+        .len();
+
+    app.add_systems(
+        Update,
+        despawn_target_entity
+            .after(spawn_tween)
+            .before(TweenHelpersSystemSet::PreTargetRemoval),
+    );
+
+    app.update();
+
+    let event_tagged_parents_after_despawn = app
+        .world_mut()
+        .query::<&AnimationParentToDestroyIfOnlyHasEventsLeft>()
+        .iter(app.world())
+        .len();
+
+    assert_eq!(event_tagged_parents_before_despawn, 2);
+    assert_eq!(event_tagged_parents_after_despawn, 0);
+}
+
 fn log(log_me: String) {
     println!("{}", log_me);
 }
