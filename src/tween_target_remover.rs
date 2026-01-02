@@ -130,17 +130,13 @@ fn remove_target_and_destroy_if_has_none<T: Sendable>(
     logging_function: &Option<fn(String) -> ()>,
     commands: &mut Commands,
 ) {
+    let mut despawned_tween = false;
     match &mut tween.target {
         TargetComponent::Entity(tween_target) => {
             if targets_to_match.contains(tween_target) {
                 if let Ok(mut entity_commands) = commands.get_entity(tween_entity) {
                     entity_commands.try_despawn();
-                    if let Some(logger) = logging_function {
-                        logger(format!(
-                            "destroying tween: {}",
-                            maybe_tween_name.unwrap_or(&Name::new("(nameless)"))
-                        ));
-                    }
+                    despawned_tween = true;
                 }
             }
         }
@@ -156,9 +152,16 @@ fn remove_target_and_destroy_if_has_none<T: Sendable>(
             if tween_targets.is_empty() {
                 if let Ok(mut entity_commands) = commands.get_entity(tween_entity) {
                     entity_commands.try_despawn();
+                    despawned_tween = true;
                 }
             }
         }
         _ => {}
+    }
+    if despawned_tween && let Some(logger) = logging_function {
+        logger(format!(
+            "destroying tween: {}",
+            maybe_tween_name.unwrap_or(&Name::new("(nameless)"))
+        ));
     }
 }
