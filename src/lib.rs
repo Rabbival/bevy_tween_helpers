@@ -32,6 +32,7 @@ An example for registering the plugins into your app would be:
             TweenPriorityHandler::<MyGloriousInterpolator>::default(),
             AnimationParentDestroyerGenericPlugin::<MyGloriousInterpolator>::default(),
             EventAnimationParentTaggerPlugin,
+            TweenSkipTaggerPlugin
         ))
         .add_tween_systems(component_tween_system::<MyGloriousInterpolator>()); //from bevy_tween
 ```
@@ -47,6 +48,7 @@ pub mod extra_transform_tween_makers;
 pub mod target_extractor;
 pub mod tween_priority;
 pub mod tween_request;
+pub mod tween_skip_tagger;
 pub mod tween_target_remover;
 pub mod utilities;
 
@@ -59,6 +61,7 @@ pub mod prelude {
     pub use crate::target_extractor::*;
     pub use crate::tween_priority::*;
     pub use crate::tween_request::*;
+    pub use crate::tween_skip_tagger::*;
     pub use crate::tween_target_remover::*;
     pub use crate::utilities::{system_sets::*, trait_unions::*};
     pub use bevy::{platform::collections::HashMap, prelude::*};

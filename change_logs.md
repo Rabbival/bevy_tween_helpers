@@ -2,6 +2,10 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.4.0
+
+* Add `TweenSkipTaggerPlugin` for automatic skipping of entire animations instead of tagging each tween manually
+
 ### 0.3.0
 
 * Fix logic that destroys animation parents with just event-emitting-tweens left to work for custom user events as well
