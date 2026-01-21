@@ -1,4 +1,4 @@
-use crate::prelude::bevy_time_runner::TimeRunner;
+use crate::prelude::bevy_time_runner::TimeRunnerMarker;
 use crate::prelude::*;
 
 pub struct EventAnimationParentTaggerPlugin;
@@ -14,7 +14,7 @@ impl Plugin for EventAnimationParentTaggerPlugin {
 }
 
 fn tag_animation_parents_with_destruction_marker(
-    new_time_runners: Query<(&Children, Entity), Added<TimeRunner>>,
+    new_time_runners: Query<(&Children, Entity), Added<TimeRunnerMarker>>,
     event_tweens: Query<(), With<EventEmittingTween>>,
     mut commands: Commands,
 ) {

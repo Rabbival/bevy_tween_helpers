@@ -1,7 +1,7 @@
 use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
 use bevy_time_runner::TimeRunnerEnded;
-use bevy_tween::bevy_time_runner::TimeRunner;
+use bevy_tween::bevy_time_runner::TimeRunnerMarker;
 use bevy_tween::prelude::ComponentTween;
 
 #[derive(Component)]
@@ -44,7 +44,7 @@ pub fn despawn_time_runners_with_no_children<T: Sendable>(
             Entity,
             Has<AnimationParentToDestroyIfOnlyHasEventsLeft>,
         ),
-        With<TimeRunner>,
+        With<TimeRunnerMarker>,
     >,
     event_tweens: Query<(), With<EventEmittingTween>>,
     mut commands: Commands,

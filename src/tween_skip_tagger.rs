@@ -1,4 +1,4 @@
-use crate::prelude::bevy_time_runner::TimeRunner;
+use crate::prelude::bevy_time_runner::TimeRunnerMarker;
 use crate::prelude::*;
 use bevy_tween::tween::{SkipTween, TweenInterpolationValue};
 
@@ -34,7 +34,7 @@ impl Plugin for TweenSkipTaggerPlugin {
 
 fn listen_to_regular_event_trigger(
     trigger: On<TweenSkipTagRequest>,
-    animation_parents: Query<&Children, With<TimeRunner>>,
+    animation_parents: Query<&Children, With<TimeRunnerMarker>>,
     tweens: Query<(), With<TweenInterpolationValue>>,
     mut commands: Commands,
 ) {
@@ -49,7 +49,7 @@ fn listen_to_regular_event_trigger(
 
 fn listen_to_triggers_from_tweens(
     trigger: On<TweenEvent<TweenSkipTagTweenRequest>>,
-    animation_parents: Query<&Children, With<TimeRunner>>,
+    animation_parents: Query<&Children, With<TimeRunnerMarker>>,
     tweens: Query<(), With<TweenInterpolationValue>>,
     mut commands: Commands,
 ) {
@@ -67,7 +67,7 @@ fn listen_to_triggers_from_tweens(
 fn tag_or_untag_to_skip_by_request_type(
     animation_parent: Entity,
     request_type: TweenSkipTagRequestType,
-    animation_parents: &Query<&Children, With<TimeRunner>>,
+    animation_parents: &Query<&Children, With<TimeRunnerMarker>>,
     tweens: &Query<(), With<TweenInterpolationValue>>,
     commands: &mut Commands,
 ) {
