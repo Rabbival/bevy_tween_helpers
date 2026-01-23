@@ -32,24 +32,27 @@ impl<T: Sendable> Plugin for TweenTargetRemoverOnSchedules<T> {
         app.add_message::<RemoveTargetsFromAllTweensOfType<T>>()
             .add_observer(remove_tween_target_on_target_despawn::<T>)
             .add_observer(on_remove_targets_from_tweens_of_type::<T>)
-            .add_observer(on_remove_targets_from_all_tweens_targeting_them_request::<T>)
-            .add_observer(track_newborn_tween_targets::<T>);
+            .add_observer(on_remove_targets_from_all_tweens_targeting_them_request::<T>);
 
         for schedule in self.schedules.clone() {
             app.add_systems(
                 schedule,
-                listen_to_target_removal_requests::<T>.in_set(TweenHelpersSystemSet::TargetRemoval),
+                (
+                    track_newborn_tween_targets::<T>
+                        .in_set(TweenHelpersSystemSet::PreTargetRemoval),
+                    listen_to_target_removal_requests::<T>
+                        .in_set(TweenHelpersSystemSet::TargetRemoval),
+                ),
             );
         }
     }
 }
 
 fn track_newborn_tween_targets<T: Sendable>(
-    trigger: On<Add, ComponentTween<T>>,
-    tweens_of_type: Query<(&ComponentTween<T>, Entity)>,
+    newborn_tweens: Query<(&ComponentTween<T>, Entity), Added<ComponentTween<T>>>,
     mut commands: Commands,
 ) {
-    if let Ok((tween, tween_entity)) = tweens_of_type.get(trigger.entity) {
+    for (tween, tween_entity) in &newborn_tweens {
         for target in get_tween_targets(tween) {
             if let Ok(mut entity_commands) = commands.get_entity(target) {
                 entity_commands.try_insert(TweenTargetOf(tween_entity));

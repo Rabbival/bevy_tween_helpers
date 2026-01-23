@@ -5,7 +5,7 @@
 ### unreleased
 
 * You may now register plugins in specific schedules: `BevyTweenHelpersOnSchedulesPlugin`, `TweenTargetRemoverOnSchedules`, `EventAnimationParentTaggerOnSchedulesPlugin`, `TweenTargetRemoverOnSchedules`
-* Make `despawn_done_time_runners` and `track_newborn_tween_targets` observers instead of schedules systems
+* Make `despawn_done_time_runners` is now an observer instead of scheduled systems
 
 ### 0.4.0
 
