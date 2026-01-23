@@ -29,7 +29,9 @@ impl Plugin for BevyTweenHelpersOnSchedulesPlugin {
         app.insert_resource(TweeningLoggingFunction(self.logging_function.clone()))
             .add_plugins((
                 TweenRequestPlugin,
-                AnimationParentDestroyerPlugin,
+                AnimationParentDestroyerOnSchedulesPlugin {
+                    schedules: self.schedules.clone(),
+                },
                 BevyTweenHelpersSystemSetsForSchedulesPlugin {
                     schedules: self.schedules.clone(),
                 },
