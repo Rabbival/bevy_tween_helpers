@@ -11,21 +11,7 @@ pub struct AnimationParentDestroyerPlugin;
 
 impl Plugin for AnimationParentDestroyerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(AnimationParentDestroyerOnSchedulesPlugin {
-            schedules: vec![Update.intern()],
-        });
-    }
-}
-
-pub struct AnimationParentDestroyerOnSchedulesPlugin {
-    pub schedules: Vec<InternedScheduleLabel>,
-}
-
-impl Plugin for AnimationParentDestroyerOnSchedulesPlugin {
-    fn build(&self, app: &mut App) {
-        for schedule in self.schedules.clone() {
-            app.add_systems(schedule, despawn_done_time_runners);
-        }
+        app.add_observer(despawn_done_time_runners);
     }
 }
 
@@ -37,15 +23,10 @@ impl<T: Sendable> Plugin for AnimationParentDestroyerGenericPlugin<T> {
     }
 }
 
-pub fn despawn_done_time_runners(
-    mut time_runner_ended_reader: MessageReader<TimeRunnerEnded>,
-    mut commands: Commands,
-) {
-    for event in time_runner_ended_reader.read() {
-        if event.is_completed() {
-            if let Ok(mut entity_commands) = commands.get_entity(event.entity) {
-                entity_commands.try_despawn();
-            }
+pub fn despawn_done_time_runners(trigger: On<TimeRunnerEnded>, mut commands: Commands) {
+    if trigger.event().is_completed() {
+        if let Ok(mut entity_commands) = commands.get_entity(trigger.event().entity) {
+            entity_commands.try_despawn();
         }
     }
 }
