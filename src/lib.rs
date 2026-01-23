@@ -64,7 +64,6 @@ pub mod prelude {
     pub use crate::tween_skip_tagger::*;
     pub use crate::tween_target_remover::*;
     pub use crate::utilities::{system_sets::*, trait_unions::*};
-    pub use bevy::ecs::schedule::{InternedScheduleLabel, ScheduleLabel};
     pub use bevy::{platform::collections::HashMap, prelude::*};
     pub use bevy_tween::*;
     pub use std::marker::PhantomData;

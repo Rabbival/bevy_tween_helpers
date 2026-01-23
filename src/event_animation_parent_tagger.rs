@@ -5,25 +5,11 @@ pub struct EventAnimationParentTaggerPlugin;
 
 impl Plugin for EventAnimationParentTaggerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(EventAnimationParentTaggerOnSchedulesPlugin {
-            schedules: vec![Update.intern()],
-        });
-    }
-}
-
-pub struct EventAnimationParentTaggerOnSchedulesPlugin {
-    pub schedules: Vec<InternedScheduleLabel>,
-}
-
-impl Plugin for EventAnimationParentTaggerOnSchedulesPlugin {
-    fn build(&self, app: &mut App) {
-        for schedule in self.schedules.clone() {
-            app.add_systems(
-                schedule,
-                tag_animation_parents_with_destruction_marker
-                    .in_set(TweenHelpersSystemSet::PreTargetRemoval),
-            );
-        }
+        app.add_systems(
+            Update,
+            tag_animation_parents_with_destruction_marker
+                .in_set(TweenHelpersSystemSet::PreTargetRemoval),
+        );
     }
 }
 

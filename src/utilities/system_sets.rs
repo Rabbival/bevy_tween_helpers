@@ -8,29 +8,17 @@ pub enum TweenHelpersSystemSet {
 
 pub struct BevyTweenHelpersSystemSetsPlugin;
 
+
 impl Plugin for BevyTweenHelpersSystemSetsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(BevyTweenHelpersSystemSetsForSchedulesPlugin {
-            schedules: vec![Update.intern()],
-        });
+        app.configure_sets(
+            Update,
+            ((
+                 TweenHelpersSystemSet::PreTargetRemoval,
+                 TweenHelpersSystemSet::TargetRemoval,
+             )
+                 .chain(),),
+        );
     }
 }
 
-pub struct BevyTweenHelpersSystemSetsForSchedulesPlugin {
-    pub schedules: Vec<InternedScheduleLabel>,
-}
-
-impl Plugin for BevyTweenHelpersSystemSetsForSchedulesPlugin {
-    fn build(&self, app: &mut App) {
-        for schedule in self.schedules.clone() {
-            app.configure_sets(
-                schedule,
-                ((
-                    TweenHelpersSystemSet::PreTargetRemoval,
-                    TweenHelpersSystemSet::TargetRemoval,
-                )
-                    .chain(),),
-            );
-        }
-    }
-}
