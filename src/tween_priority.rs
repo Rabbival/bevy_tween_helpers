@@ -21,10 +21,7 @@ plugin_for_implementors_of_trait!(TweenPriorityHandler, Sendable);
 
 impl<T: Sendable> Plugin for TweenPriorityHandler<T> {
     fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            handle_tween_priority_on_spawn::<T>.in_set(TweenHelpersSystemSet::PreTargetRemoval),
-        );
+        app.add_observer(handle_tween_priority_on_spawn::<T>);
     }
 }
 
@@ -32,28 +29,25 @@ impl<T: Sendable> Plugin for TweenPriorityHandler<T> {
 /// or a new tween is spawned as a child to a parent with a priority. If a tween has no `TweenPriorityToOthersOfType`,
 /// the tween priority logic ignores it.
 fn handle_tween_priority_on_spawn<T: Sendable>(
+    trigger: On<Add, ComponentTween<T>>,
     mut tween_request_writer: MessageWriter<TweenRequest>,
     tween_priorities_query: Query<&TweenPriorityToOthersOfType>,
-    all_tweens_of_type: Query<(
+    tweens_of_type: Query<(
         &ComponentTween<T>,
         &ChildOf,
         Option<&TweenPriorityToOthersOfType>,
+        Option<&Name>,
         Entity,
     )>,
-    newborn_tweens_query: Query<
-        (
-            &ComponentTween<T>,
-            &ChildOf,
-            Entity,
-            Option<&TweenPriorityToOthersOfType>,
-            Option<&Name>,
-        ),
-        Added<ComponentTween<T>>,
-    >,
     logging_function: Res<TweeningLoggingFunction>,
 ) {
-    for (newborn_tween, child_of, newborn_tween_entity, maybe_tween_priority, maybe_tween_name) in
-        &newborn_tweens_query
+    if let Ok((
+        newborn_tween,
+        child_of,
+        maybe_tween_priority,
+        maybe_tween_name,
+        newborn_tween_entity,
+    )) = tweens_of_type.get(trigger.entity)
     {
         let maybe_priority = if let Some(tween_priority) = maybe_tween_priority {
             Some(tween_priority)
@@ -75,7 +69,7 @@ fn handle_tween_priority_on_spawn<T: Sendable>(
                 newborn_tween,
                 newborn_tween_entity,
                 child_of,
-                &all_tweens_of_type,
+                &tweens_of_type,
                 &tween_priorities_query,
             );
         }
@@ -88,15 +82,16 @@ fn handle_tween_priority_to_others_of_type<T: Sendable>(
     newborn_tween: &ComponentTween<T>,
     newborn_tween_entity: Entity,
     newborn_tween_child_of: &ChildOf,
-    all_tweens_of_type: &Query<(
+    tweens_of_type: &Query<(
         &ComponentTween<T>,
         &ChildOf,
         Option<&TweenPriorityToOthersOfType>,
+        Option<&Name>,
         Entity,
     )>,
     tween_priorities_query: &Query<&TweenPriorityToOthersOfType>,
 ) {
-    for (other_tween, child_of, maybe_other_priority, other_tween_entity) in all_tweens_of_type {
+    for (other_tween, child_of, maybe_other_priority, _, other_tween_entity) in tweens_of_type {
         let sibling_tweens = newborn_tween_child_of.parent() == child_of.parent();
         if other_tween_entity != newborn_tween_entity && !sibling_tweens {
             if let Some(other_priority_level) = try_get_other_tween_priority(
