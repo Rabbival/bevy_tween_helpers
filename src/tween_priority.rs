@@ -1,6 +1,7 @@
 use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
 use bevy::prelude::Component;
+use bevy_tween::bevy_time_runner::TimeStepMarker;
 use bevy_tween::prelude::ComponentTween;
 
 /// When there's a conflict between two existing tweens of the same type
@@ -21,41 +22,53 @@ plugin_for_implementors_of_trait!(TweenPriorityHandler, Sendable);
 
 impl<T: Sendable> Plugin for TweenPriorityHandler<T> {
     fn build(&self, app: &mut App) {
-        app.add_plugins(TweenPriorityHandlerOnSchedules::<T>::on_schedules(vec![
+        app.add_plugins(TweenPriorityHandlerOnSchedules::<T, ()>::on_schedule(
             Update.intern(),
-        ]));
+        ));
     }
 }
 
-pub struct TweenPriorityHandlerOnSchedules<T: Sendable> {
-    schedules: Vec<InternedScheduleLabel>,
-    _phantom_data: PhantomData<T>,
+pub struct TweenPriorityHandlerOnSchedules<T, TimeStep>
+where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
+    schedule: InternedScheduleLabel,
+    tween_type_marker: PhantomData<T>,
+    time_step_marker: PhantomData<TimeStep>,
 }
-impl<T: Sendable> TweenPriorityHandlerOnSchedules<T> {
-    pub fn on_schedules(schedules: Vec<InternedScheduleLabel>) -> Self {
+impl<T, TimeStep> TweenPriorityHandlerOnSchedules<T, TimeStep>
+where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
+    pub fn on_schedule(schedule: InternedScheduleLabel) -> Self {
         Self {
-            schedules,
-            _phantom_data: PhantomData::default(),
+            schedule,
+            tween_type_marker: PhantomData::default(),
+            time_step_marker: PhantomData::default(),
         }
     }
 }
-impl<T: Sendable> Plugin for TweenPriorityHandlerOnSchedules<T> {
+impl<T, TimeStep> Plugin for TweenPriorityHandlerOnSchedules<T, TimeStep>
+where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
     fn build(&self, app: &mut App) {
-        for schedule in self.schedules.clone() {
-            app.add_systems(
-                schedule,
-                handle_tween_priority_on_spawn::<T>.in_set(TweenHelpersSystemSet::PreTargetRemoval),
-            );
-        }
+        app.add_systems(
+            self.schedule.clone(),
+            handle_tween_priority_on_spawn::<T, TimeStep>
+                .in_set(TweenHelpersSystemSet::PreTargetRemoval),
+        );
     }
 }
 
 /// The entire logic of keeping one tween over the other only runs when a new tween with priority is spawned
 /// or a new tween is spawned as a child to a parent with a priority. If a tween has no `TweenPriorityToOthersOfType`,
 /// the tween priority logic ignores it.
-fn handle_tween_priority_on_spawn<T: Sendable>(
+fn handle_tween_priority_on_spawn<T, TimeStep>(
     mut tween_request_writer: MessageWriter<TweenRequest>,
-    tween_priorities_query: Query<&TweenPriorityToOthersOfType>,
     all_tweens_of_type: Query<(
         &ComponentTween<T>,
         &ChildOf,
@@ -72,11 +85,19 @@ fn handle_tween_priority_on_spawn<T: Sendable>(
         ),
         Added<ComponentTween<T>>,
     >,
+    tween_priorities_query: Query<&TweenPriorityToOthersOfType>,
+    time_step_marked: Query<(), With<TimeStepMarker<TimeStep>>>,
     logging_function: Res<TweeningLoggingFunction>,
-) {
+) where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
     for (newborn_tween, child_of, newborn_tween_entity, maybe_tween_priority, maybe_tween_name) in
         &newborn_tweens_query
     {
+        if !time_step_marked.contains(child_of.parent()) {
+            continue;
+        }
         let maybe_priority = if let Some(tween_priority) = maybe_tween_priority {
             Some(tween_priority)
         } else if let Ok(parent_priority) = tween_priorities_query.get(child_of.parent()) {
