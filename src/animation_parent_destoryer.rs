@@ -1,7 +1,7 @@
 use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
 use bevy_time_runner::TimeRunnerEnded;
-use bevy_tween::bevy_time_runner::TimeRunnerMarker;
+use bevy_tween::bevy_time_runner::{TimeRunner, TimeStepMarker};
 use bevy_tween::prelude::ComponentTween;
 
 #[derive(Component)]
@@ -11,21 +11,36 @@ pub struct AnimationParentDestroyerPlugin;
 
 impl Plugin for AnimationParentDestroyerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(AnimationParentDestroyerOnSchedulesPlugin {
-            schedules: vec![Update.intern()],
-        });
+        app.add_plugins(AnimationParentDestroyerOnSchedulePlugin::<()>::on_schedule(
+            Update.intern(),
+        ));
     }
 }
 
-pub struct AnimationParentDestroyerOnSchedulesPlugin {
-    pub schedules: Vec<InternedScheduleLabel>,
+pub struct AnimationParentDestroyerOnSchedulePlugin<TimeStep>
+where
+    TimeStep: Default + Send + Sync + 'static,
+{
+    pub schedule: InternedScheduleLabel,
+    time_step_marker: PhantomData<TimeStep>,
 }
-
-impl Plugin for AnimationParentDestroyerOnSchedulesPlugin {
-    fn build(&self, app: &mut App) {
-        for schedule in self.schedules.clone() {
-            app.add_systems(schedule, despawn_done_time_runners);
+impl<TimeStep> AnimationParentDestroyerOnSchedulePlugin<TimeStep>
+where
+    TimeStep: Default + Send + Sync + 'static,
+{
+    pub fn on_schedule(schedule: InternedScheduleLabel) -> Self {
+        Self {
+            schedule,
+            time_step_marker: PhantomData::default(),
         }
+    }
+}
+impl<TimeStep> Plugin for AnimationParentDestroyerOnSchedulePlugin<TimeStep>
+where
+    TimeStep: Default + Send + Sync + 'static,
+{
+    fn build(&self, app: &mut App) {
+        app.add_systems(self.schedule.clone(), despawn_done_time_runners::<TimeStep>);
     }
 }
 
@@ -37,12 +52,15 @@ impl<T: Sendable> Plugin for AnimationParentDestroyerGenericPlugin<T> {
     }
 }
 
-pub fn despawn_done_time_runners(
+pub fn despawn_done_time_runners<TimeStep>(
     mut time_runner_ended_reader: MessageReader<TimeRunnerEnded>,
+    time_step_marked: Query<(), With<TimeStepMarker<TimeStep>>>,
     mut commands: Commands,
-) {
+) where
+    TimeStep: Default + Send + Sync + 'static,
+{
     for event in time_runner_ended_reader.read() {
-        if event.is_completed() {
+        if event.is_completed() && time_step_marked.contains(event.entity) {
             if let Ok(mut entity_commands) = commands.get_entity(event.entity) {
                 entity_commands.try_despawn();
             }
@@ -58,7 +76,7 @@ pub fn despawn_time_runners_with_no_children<T: Sendable>(
             Entity,
             Has<AnimationParentToDestroyIfOnlyHasEventsLeft>,
         ),
-        With<TimeRunnerMarker>,
+        With<TimeRunner>,
     >,
     event_tweens: Query<(), With<EventEmittingTween>>,
     mut commands: Commands,

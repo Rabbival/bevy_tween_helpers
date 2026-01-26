@@ -1,4 +1,5 @@
 use crate::{plugin_for_implementors_of_trait, prelude::*, read_single_field_variant};
+use bevy_tween::bevy_time_runner::TimeStepMarker;
 use tween::{ComponentTween, TargetComponent};
 
 #[derive(Component)]
@@ -6,41 +7,59 @@ pub struct TweenTargetOf(pub Entity);
 
 plugin_for_implementors_of_trait!(TweenTargetRemover, Sendable);
 
-pub struct TweenTargetRemoverOnSchedules<T: Sendable> {
-    schedules: Vec<InternedScheduleLabel>,
-    _phantom_data: PhantomData<T>,
+impl<T: Sendable> Plugin for TweenTargetRemover<T> {
+    fn build(&self, app: &mut App) {
+        app.add_plugins((
+            TweenTargetRemoverObservers::<T>::default(),
+            TweenTargetRemoverOnSchedule::<T, ()>::on_schedule(Update.intern()),
+        ));
+    }
 }
-impl<T: Sendable> TweenTargetRemoverOnSchedules<T> {
-    pub fn on_schedules(schedules: Vec<InternedScheduleLabel>) -> Self {
+
+pub struct TweenTargetRemoverOnSchedule<T, TimeStep>
+where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
+    schedule: InternedScheduleLabel,
+    tween_type_marker: PhantomData<T>,
+    time_step_marker: PhantomData<TimeStep>,
+}
+impl<T, TimeStep> TweenTargetRemoverOnSchedule<T, TimeStep>
+where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
+    pub fn on_schedule(schedule: InternedScheduleLabel) -> Self {
         Self {
-            schedules,
-            _phantom_data: PhantomData::default(),
+            schedule,
+            tween_type_marker: PhantomData::default(),
+            time_step_marker: PhantomData::default(),
         }
     }
 }
-
-impl<T: Sendable> Plugin for TweenTargetRemover<T> {
+impl<T, TimeStep> Plugin for TweenTargetRemoverOnSchedule<T, TimeStep>
+where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
     fn build(&self, app: &mut App) {
-        app.add_plugins(TweenTargetRemoverOnSchedules::<T>::on_schedules(vec![
-            Update.intern(),
-        ]));
+        app.add_systems(
+            self.schedule.clone(),
+            listen_to_target_removal_requests::<T, TimeStep>
+                .in_set(TweenHelpersSystemSet::TargetRemoval),
+        );
     }
 }
 
-impl<T: Sendable> Plugin for TweenTargetRemoverOnSchedules<T> {
+plugin_for_implementors_of_trait!(TweenTargetRemoverObservers, Sendable);
+impl<T: Sendable> Plugin for TweenTargetRemoverObservers<T> {
     fn build(&self, app: &mut App) {
         app.add_message::<RemoveTargetsFromAllTweensOfType<T>>()
             .add_observer(remove_tween_target_on_target_despawn::<T>)
             .add_observer(on_remove_targets_from_tweens_of_type::<T>)
             .add_observer(on_remove_targets_from_all_tweens_targeting_them_request::<T>)
             .add_observer(track_newborn_tween_targets::<T>);
-
-        for schedule in self.schedules.clone() {
-            app.add_systems(
-                schedule,
-                listen_to_target_removal_requests::<T>.in_set(TweenHelpersSystemSet::TargetRemoval),
-            );
-        }
     }
 }
 
@@ -121,12 +140,18 @@ fn remove_tween_target_on_target_despawn<T: Sendable>(
     }
 }
 
-fn listen_to_target_removal_requests<T: Sendable>(
+fn listen_to_target_removal_requests<T, TimeStep>(
     mut tween_request_reader: MessageReader<TweenRequest>,
-    mut tweens_of_type: Query<(&mut ComponentTween<T>, Option<&Name>)>,
+    mut tweens_of_type: Query<
+        (&mut ComponentTween<T>, Option<&Name>),
+        With<TimeStepMarker<TimeStep>>,
+    >,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
-) {
+) where
+    T: Sendable,
+    TimeStep: Default + Send + Sync + 'static,
+{
     for remove_request in
         read_single_field_variant!(tween_request_reader, TweenRequest::RemoveEntity)
     {
