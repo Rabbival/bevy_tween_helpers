@@ -22,13 +22,13 @@ plugin_for_implementors_of_trait!(TweenPriorityHandler, Sendable);
 
 impl<T: Sendable> Plugin for TweenPriorityHandler<T> {
     fn build(&self, app: &mut App) {
-        app.add_plugins(TweenPriorityHandlerOnSchedules::<T, ()>::on_schedule(
+        app.add_plugins(TweenPriorityHandlerOnSchedule::<T, ()>::on_schedule(
             Update.intern(),
         ));
     }
 }
 
-pub struct TweenPriorityHandlerOnSchedules<T, TimeStep>
+pub struct TweenPriorityHandlerOnSchedule<T, TimeStep>
 where
     T: Sendable,
     TimeStep: Default + Send + Sync + 'static,
@@ -37,7 +37,7 @@ where
     tween_type_marker: PhantomData<T>,
     time_step_marker: PhantomData<TimeStep>,
 }
-impl<T, TimeStep> TweenPriorityHandlerOnSchedules<T, TimeStep>
+impl<T, TimeStep> TweenPriorityHandlerOnSchedule<T, TimeStep>
 where
     T: Sendable,
     TimeStep: Default + Send + Sync + 'static,
@@ -50,7 +50,7 @@ where
         }
     }
 }
-impl<T, TimeStep> Plugin for TweenPriorityHandlerOnSchedules<T, TimeStep>
+impl<T, TimeStep> Plugin for TweenPriorityHandlerOnSchedule<T, TimeStep>
 where
     T: Sendable,
     TimeStep: Default + Send + Sync + 'static,

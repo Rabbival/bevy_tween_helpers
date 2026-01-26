@@ -9,6 +9,9 @@
   which would allow you to define the system sets on different schedules
 * You may now register plugins for specific schedule and time step:
   * `AnimationParentDestroyerOnSchedulePlugin`
+  * `EventAnimationParentTaggerOnSchedulePlugin`
+  * `TweenPriorityHandlerOnSchedule`
+  * `TweenTargetRemoverOnSchedule`
 * Make `handle_tween_priority_on_spawn` observer instead of scheduled system
 
 ### 0.4.0
