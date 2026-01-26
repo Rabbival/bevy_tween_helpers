@@ -69,12 +69,6 @@ where
 /// the tween priority logic ignores it.
 fn handle_tween_priority_on_spawn<T, TimeStep>(
     mut tween_request_writer: MessageWriter<TweenRequest>,
-    all_tweens_of_type: Query<(
-        &ComponentTween<T>,
-        &ChildOf,
-        Option<&TweenPriorityToOthersOfType>,
-        Entity,
-    )>,
     newborn_tweens_query: Query<
         (
             &ComponentTween<T>,
@@ -85,6 +79,12 @@ fn handle_tween_priority_on_spawn<T, TimeStep>(
         ),
         Added<ComponentTween<T>>,
     >,
+    all_tweens_of_type: Query<(
+        &ComponentTween<T>,
+        &ChildOf,
+        Option<&TweenPriorityToOthersOfType>,
+        Entity,
+    )>,
     tween_priorities_query: Query<&TweenPriorityToOthersOfType>,
     time_step_marked: Query<(), With<TimeStepMarker<TimeStep>>>,
     logging_function: Res<TweeningLoggingFunction>,
@@ -141,25 +141,26 @@ fn handle_tween_priority_to_others_of_type<T: Sendable>(
 ) {
     for (other_tween, child_of, maybe_other_priority, other_tween_entity) in all_tweens_of_type {
         let sibling_tweens = newborn_tween_child_of.parent() == child_of.parent();
-        if other_tween_entity != newborn_tween_entity && !sibling_tweens {
-            if let Some(other_priority_level) = try_get_other_tween_priority(
-                maybe_other_priority,
-                child_of.parent(),
-                tween_priorities_query,
-            ) {
-                if other_priority_level <= tween_priority.0 {
-                    remove_intersecting_targets_for_weaker_tween(
-                        tween_request_writer,
-                        newborn_tween,
-                        other_tween_entity,
-                    );
-                } else {
-                    remove_intersecting_targets_for_weaker_tween(
-                        tween_request_writer,
-                        other_tween,
-                        newborn_tween_entity,
-                    );
-                }
+        if other_tween_entity == newborn_tween_entity || sibling_tweens {
+            continue;
+        }
+        if let Some(other_priority_level) = try_get_other_tween_priority(
+            maybe_other_priority,
+            child_of.parent(),
+            tween_priorities_query,
+        ) {
+            if other_priority_level <= tween_priority.0 {
+                remove_intersecting_targets_for_weaker_tween(
+                    tween_request_writer,
+                    newborn_tween,
+                    other_tween_entity,
+                );
+            } else {
+                remove_intersecting_targets_for_weaker_tween(
+                    tween_request_writer,
+                    other_tween,
+                    newborn_tween_entity,
+                );
             }
         }
     }

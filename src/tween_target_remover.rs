@@ -142,10 +142,8 @@ fn remove_tween_target_on_target_despawn<T: Sendable>(
 
 fn listen_to_target_removal_requests<T, TimeStep>(
     mut tween_request_reader: MessageReader<TweenRequest>,
-    mut tweens_of_type: Query<
-        (&mut ComponentTween<T>, Option<&Name>),
-        With<TimeStepMarker<TimeStep>>,
-    >,
+    mut tweens_of_type: Query<(&mut ComponentTween<T>, &ChildOf, Option<&Name>)>,
+    time_step_marked: Query<(), With<TimeStepMarker<TimeStep>>>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
 ) where
@@ -155,7 +153,10 @@ fn listen_to_target_removal_requests<T, TimeStep>(
     for remove_request in
         read_single_field_variant!(tween_request_reader, TweenRequest::RemoveEntity)
     {
-        if let Ok((mut tween, maybe_name)) = tweens_of_type.get_mut(remove_request.tween_entity) {
+        if let Ok((mut tween, ChildOf(parent), maybe_name)) =
+            tweens_of_type.get_mut(remove_request.tween_entity)
+            && time_step_marked.contains(*parent)
+        {
             remove_target_and_destroy_if_has_none(
                 &remove_request.targets_to_remove,
                 remove_request.tween_entity,
