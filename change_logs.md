@@ -13,6 +13,7 @@
   * `TweenPriorityHandlerOnSchedule`
   * `TweenTargetRemoverOnSchedule`
 * Make `handle_tween_priority_on_spawn` observer instead of scheduled system
+* Update to bevy 0.18
 
 ### 0.4.0
 

@@ -1,7 +1,7 @@
 use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
 use bevy_time_runner::TimeRunnerEnded;
-use bevy_tween::bevy_time_runner::{TimeRunner, TimeStepMarker};
+use bevy_tween::bevy_time_runner::{TimeContext, TimeRunner};
 use bevy_tween::prelude::ComponentTween;
 
 #[derive(Component)]
@@ -17,16 +17,16 @@ impl Plugin for AnimationParentDestroyerPlugin {
     }
 }
 
-pub struct AnimationParentDestroyerOnSchedulePlugin<TimeStep>
+pub struct AnimationParentDestroyerOnSchedulePlugin<TimeCtx>
 where
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     pub schedule: InternedScheduleLabel,
-    time_step_marker: PhantomData<TimeStep>,
+    time_step_marker: PhantomData<TimeCtx>,
 }
-impl<TimeStep> AnimationParentDestroyerOnSchedulePlugin<TimeStep>
+impl<TimeCtx> AnimationParentDestroyerOnSchedulePlugin<TimeCtx>
 where
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     pub fn on_schedule(schedule: InternedScheduleLabel) -> Self {
         Self {
@@ -35,12 +35,12 @@ where
         }
     }
 }
-impl<TimeStep> Plugin for AnimationParentDestroyerOnSchedulePlugin<TimeStep>
+impl<TimeCtx> Plugin for AnimationParentDestroyerOnSchedulePlugin<TimeCtx>
 where
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     fn build(&self, app: &mut App) {
-        app.add_systems(self.schedule.clone(), despawn_done_time_runners::<TimeStep>);
+        app.add_systems(self.schedule.clone(), despawn_done_time_runners::<TimeCtx>);
     }
 }
 
@@ -52,12 +52,12 @@ impl<T: Sendable> Plugin for AnimationParentDestroyerGenericPlugin<T> {
     }
 }
 
-pub fn despawn_done_time_runners<TimeStep>(
+pub fn despawn_done_time_runners<TimeCtx>(
     mut time_runner_ended_reader: MessageReader<TimeRunnerEnded>,
-    time_step_marked: Query<(), With<TimeStepMarker<TimeStep>>>,
+    time_step_marked: Query<(), With<TimeContext<TimeCtx>>>,
     mut commands: Commands,
 ) where
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     for event in time_runner_ended_reader.read() {
         if event.is_completed() && time_step_marked.contains(event.entity) {

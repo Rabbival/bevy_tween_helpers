@@ -15,7 +15,7 @@ categories = ["game-development"]
 bevy_tween = { git = "https://github.com/Multirious/bevy_tween", branch = "generic_time_steps" }
 
 [dependencies.bevy]
-version = "0.17.3"
+version = "0.18.0"
 default-features = false
 features = [
     "bevy_core_pipeline",
