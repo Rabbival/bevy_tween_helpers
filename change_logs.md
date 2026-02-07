@@ -4,7 +4,7 @@
 
 ### unreleased
 
-* important: `AnimationParentDestroyerPlugin` is no longer registered defaultly by `BevyTweenHelpersPlugin`
+* IMPORTANT: `AnimationParentDestroyerPlugin` is no longer registered defaultly by `BevyTweenHelpersPlugin`
 * You may now register the `BevyTweenHelpersOnSchedulesPlugin` instead of `BevyTweenHelpersPlugin`,
   which would allow you to define the system sets on different schedules
 * You may now register plugins for specific schedule and time step:

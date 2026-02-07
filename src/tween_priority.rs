@@ -140,8 +140,8 @@ fn handle_tween_priority_to_others_of_type<T: Sendable>(
     tween_priorities_query: &Query<&TweenPriorityToOthersOfType>,
 ) {
     for (other_tween, child_of, maybe_other_priority, other_tween_entity) in all_tweens_of_type {
-        let sibling_tweens = newborn_tween_child_of.parent() == child_of.parent();
-        if other_tween_entity == newborn_tween_entity || sibling_tweens {
+        let siblings_or_same = newborn_tween_child_of.parent() == child_of.parent();
+        if siblings_or_same {
             continue;
         }
         if let Some(other_priority_level) = try_get_other_tween_priority(
