@@ -1,7 +1,7 @@
 use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
 use bevy::prelude::Component;
-use bevy_tween::bevy_time_runner::TimeStepMarker;
+use bevy_tween::bevy_time_runner::TimeContext;
 use bevy_tween::prelude::ComponentTween;
 
 /// When there's a conflict between two existing tweens of the same type
@@ -28,19 +28,19 @@ impl<T: Sendable> Plugin for TweenPriorityHandler<T> {
     }
 }
 
-pub struct TweenPriorityHandlerOnSchedule<T, TimeStep>
+pub struct TweenPriorityHandlerOnSchedule<T, TimeCtx>
 where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     schedule: InternedScheduleLabel,
     tween_type_marker: PhantomData<T>,
-    time_step_marker: PhantomData<TimeStep>,
+    time_step_marker: PhantomData<TimeCtx>,
 }
-impl<T, TimeStep> TweenPriorityHandlerOnSchedule<T, TimeStep>
+impl<T, TimeCtx> TweenPriorityHandlerOnSchedule<T, TimeCtx>
 where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     pub fn on_schedule(schedule: InternedScheduleLabel) -> Self {
         Self {
@@ -50,15 +50,15 @@ where
         }
     }
 }
-impl<T, TimeStep> Plugin for TweenPriorityHandlerOnSchedule<T, TimeStep>
+impl<T, TimeCtx> Plugin for TweenPriorityHandlerOnSchedule<T, TimeCtx>
 where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     fn build(&self, app: &mut App) {
         app.add_systems(
             self.schedule.clone(),
-            handle_tween_priority_on_spawn::<T, TimeStep>
+            handle_tween_priority_on_spawn::<T, TimeCtx>
                 .in_set(TweenHelpersSystemSet::PreTargetRemoval),
         );
     }
@@ -67,7 +67,7 @@ where
 /// The entire logic of keeping one tween over the other only runs when a new tween with priority is spawned
 /// or a new tween is spawned as a child to a parent with a priority. If a tween has no `TweenPriorityToOthersOfType`,
 /// the tween priority logic ignores it.
-fn handle_tween_priority_on_spawn<T, TimeStep>(
+fn handle_tween_priority_on_spawn<T, TimeCtx>(
     mut tween_request_writer: MessageWriter<TweenRequest>,
     newborn_tweens_query: Query<
         (
@@ -86,11 +86,11 @@ fn handle_tween_priority_on_spawn<T, TimeStep>(
         Entity,
     )>,
     tween_priorities_query: Query<&TweenPriorityToOthersOfType>,
-    time_step_marked: Query<(), With<TimeStepMarker<TimeStep>>>,
+    time_step_marked: Query<(), With<TimeContext<TimeCtx>>>,
     logging_function: Res<TweeningLoggingFunction>,
 ) where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     for (newborn_tween, child_of, newborn_tween_entity, maybe_tween_priority, maybe_tween_name) in
         &newborn_tweens_query

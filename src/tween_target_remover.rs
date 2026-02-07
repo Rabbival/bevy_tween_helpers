@@ -1,5 +1,5 @@
 use crate::{plugin_for_implementors_of_trait, prelude::*, read_single_field_variant};
-use bevy_tween::bevy_time_runner::TimeStepMarker;
+use bevy_tween::bevy_time_runner::TimeContext;
 use tween::{ComponentTween, TargetComponent};
 
 #[derive(Component)]
@@ -16,19 +16,19 @@ impl<T: Sendable> Plugin for TweenTargetRemover<T> {
     }
 }
 
-pub struct TweenTargetRemoverOnSchedule<T, TimeStep>
+pub struct TweenTargetRemoverOnSchedule<T, TimeCtx>
 where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     schedule: InternedScheduleLabel,
     tween_type_marker: PhantomData<T>,
-    time_step_marker: PhantomData<TimeStep>,
+    time_step_marker: PhantomData<TimeCtx>,
 }
-impl<T, TimeStep> TweenTargetRemoverOnSchedule<T, TimeStep>
+impl<T, TimeCtx> TweenTargetRemoverOnSchedule<T, TimeCtx>
 where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     pub fn on_schedule(schedule: InternedScheduleLabel) -> Self {
         Self {
@@ -38,15 +38,15 @@ where
         }
     }
 }
-impl<T, TimeStep> Plugin for TweenTargetRemoverOnSchedule<T, TimeStep>
+impl<T, TimeCtx> Plugin for TweenTargetRemoverOnSchedule<T, TimeCtx>
 where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     fn build(&self, app: &mut App) {
         app.add_systems(
             self.schedule.clone(),
-            listen_to_target_removal_requests::<T, TimeStep>
+            listen_to_target_removal_requests::<T, TimeCtx>
                 .in_set(TweenHelpersSystemSet::TargetRemoval),
         );
     }
@@ -140,15 +140,15 @@ fn remove_tween_target_on_target_despawn<T: Sendable>(
     }
 }
 
-fn listen_to_target_removal_requests<T, TimeStep>(
+fn listen_to_target_removal_requests<T, TimeCtx>(
     mut tween_request_reader: MessageReader<TweenRequest>,
     mut tweens_of_type: Query<(&mut ComponentTween<T>, &ChildOf, Option<&Name>)>,
-    time_step_marked: Query<(), With<TimeStepMarker<TimeStep>>>,
+    time_step_marked: Query<(), With<TimeContext<TimeCtx>>>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
 ) where
     T: Sendable,
-    TimeStep: Default + Send + Sync + 'static,
+    TimeCtx: Default + Send + Sync + 'static,
 {
     for remove_request in
         read_single_field_variant!(tween_request_reader, TweenRequest::RemoveEntity)
