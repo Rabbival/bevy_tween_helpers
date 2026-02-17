@@ -13,6 +13,7 @@
   * `TweenPriorityHandlerOnSchedule`
   * `TweenTargetRemoverOnSchedule`
 * Make `handle_tween_priority_on_spawn` observer instead of scheduled system
+* Replace `TweenTargetOf` with `TargetingTweens` as a single entity may be targetted by many tweens
 * Update to bevy 0.18
 
 ### 0.4.0

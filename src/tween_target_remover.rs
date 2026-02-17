@@ -1,9 +1,17 @@
 use crate::{plugin_for_implementors_of_trait, prelude::*, read_single_field_variant};
+use bevy::platform::collections::HashSet;
 use bevy_tween::bevy_time_runner::TimeContext;
 use tween::{ComponentTween, TargetComponent};
 
-#[derive(Component)]
-pub struct TweenTargetOf(pub Entity);
+#[derive(Component, Deref, DerefMut)]
+pub struct TargetingTweens(pub HashSet<Entity>);
+impl TargetingTweens {
+    pub fn with_tween(tween_entity: Entity) -> Self {
+        let mut set = HashSet::new();
+        set.insert(tween_entity);
+        Self(set)
+    }
+}
 
 plugin_for_implementors_of_trait!(TweenTargetRemover, Sendable);
 
@@ -59,19 +67,43 @@ impl<T: Sendable> Plugin for TweenTargetRemoverObservers<T> {
             .add_observer(remove_tween_target_on_target_despawn::<T>)
             .add_observer(on_remove_targets_from_tweens_of_type::<T>)
             .add_observer(on_remove_targets_from_all_tweens_targeting_them_request::<T>)
-            .add_observer(track_newborn_tween_targets::<T>);
+            .add_observer(track_newborn_tween_targets::<T>)
+            .add_observer(remove_tween_from_targeting_tweens_on_removal::<T>);
     }
 }
 
 fn track_newborn_tween_targets<T: Sendable>(
     trigger: On<Add, ComponentTween<T>>,
     tweens_of_type: Query<(&ComponentTween<T>, Entity)>,
+    mut target_query: Query<&mut TargetingTweens>,
     mut commands: Commands,
 ) {
     if let Ok((tween, tween_entity)) = tweens_of_type.get(trigger.entity) {
         for target in get_tween_targets(tween) {
-            if let Ok(mut entity_commands) = commands.get_entity(target) {
-                entity_commands.try_insert(TweenTargetOf(tween_entity));
+            if let Ok(mut targeting_tweens) = target_query.get_mut(target) {
+                targeting_tweens.insert(tween_entity);
+            } else {
+                commands
+                    .entity(target)
+                    .try_insert(TargetingTweens::with_tween(tween_entity));
+            }
+        }
+    }
+}
+
+fn remove_tween_from_targeting_tweens_on_removal<T: Sendable>(
+    trigger: On<Remove, ComponentTween<T>>,
+    tweens_of_type: Query<(&ComponentTween<T>, Entity)>,
+    mut target_query: Query<&mut TargetingTweens>,
+    mut commands: Commands,
+) {
+    if let Ok((tween, tween_entity)) = tweens_of_type.get(trigger.entity) {
+        for target in get_tween_targets(tween) {
+            if let Ok(mut targeting_tweens) = target_query.get_mut(target) {
+                targeting_tweens.remove(&tween_entity);
+                if targeting_tweens.is_empty() {
+                    commands.entity(target).try_remove::<TargetingTweens>();
+                }
             }
         }
     }
@@ -79,64 +111,77 @@ fn track_newborn_tween_targets<T: Sendable>(
 
 fn on_remove_targets_from_tweens_of_type<T: Sendable>(
     trigger: On<RemoveTargetsFromAllTweensOfType<T>>,
-    mut tweens_of_type: Query<(&mut ComponentTween<T>, Entity, Option<&Name>)>,
+    target_query: Query<&TargetingTweens>,
+    mut tweens_of_type: Query<(&mut ComponentTween<T>, Option<&Name>)>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
 ) {
-    let entities = &trigger.targets;
-    if entities.is_empty() {
-        return;
-    }
-    for (mut tween, tween_entity, maybe_tween_name) in &mut tweens_of_type {
-        remove_target_and_destroy_if_has_none(
-            entities,
-            tween_entity,
-            &mut tween,
-            maybe_tween_name,
-            &logging_function.0,
-            &mut commands,
-        );
+    for target in &trigger.targets {
+        if let Ok(targeting_tweens) = target_query.get(*target) {
+            for tween_entity in targeting_tweens.iter() {
+                if let Ok((mut tween, maybe_tween_name)) = tweens_of_type.get_mut(*tween_entity) {
+                    remove_target_and_destroy_if_has_none(
+                        &trigger.targets,
+                        *tween_entity,
+                        &mut tween,
+                        maybe_tween_name,
+                        &logging_function.0,
+                        &mut commands,
+                    );
+                }
+            }
+        }
     }
 }
 
 fn on_remove_targets_from_all_tweens_targeting_them_request<T: Sendable>(
     trigger: On<TweenRequest>,
-    mut tweens_of_type: Query<(&mut ComponentTween<T>, Entity, Option<&Name>)>,
+    target_query: Query<&TargetingTweens>,
+    mut tweens_of_type: Query<(&mut ComponentTween<T>, Option<&Name>)>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
 ) {
     if let TweenRequest::RemoveTargetsFromAllTweensTargetingThem(entities) = trigger.event() {
-        if entities.is_empty() {
-            return;
-        }
-        for (mut tween, tween_entity, maybe_tween_name) in &mut tweens_of_type {
-            remove_target_and_destroy_if_has_none(
-                &entities,
-                tween_entity,
-                &mut tween,
-                maybe_tween_name,
-                &logging_function.0,
-                &mut commands,
-            );
+        for target in entities {
+            if let Ok(targeting_tweens) = target_query.get(*target) {
+                for tween_entity in targeting_tweens.iter() {
+                    if let Ok((mut tween, maybe_tween_name)) = tweens_of_type.get_mut(*tween_entity)
+                    {
+                        remove_target_and_destroy_if_has_none(
+                            entities,
+                            *tween_entity,
+                            &mut tween,
+                            maybe_tween_name,
+                            &logging_function.0,
+                            &mut commands,
+                        );
+                    }
+                }
+            }
         }
     }
 }
 
 fn remove_tween_target_on_target_despawn<T: Sendable>(
-    trigger: On<Remove, TweenTargetOf>,
-    mut query: Query<(&mut ComponentTween<T>, Option<&Name>, Entity)>,
+    trigger: On<Remove, TargetingTweens>,
+    target_query: Query<&TargetingTweens>,
+    mut tween_query: Query<(&mut ComponentTween<T>, Option<&Name>)>,
     logging_function: Res<TweeningLoggingFunction>,
     mut commands: Commands,
 ) {
-    for (mut tween, maybe_tween_name, tween_entity) in &mut query {
-        remove_target_and_destroy_if_has_none(
-            &vec![trigger.entity],
-            tween_entity,
-            &mut tween,
-            maybe_tween_name,
-            &logging_function.0,
-            &mut commands,
-        );
+    if let Ok(targeting_tweens) = target_query.get(trigger.entity) {
+        for tween_entity in targeting_tweens.iter() {
+            if let Ok((mut tween, maybe_tween_name)) = tween_query.get_mut(*tween_entity) {
+                remove_target_and_destroy_if_has_none(
+                    &vec![trigger.entity],
+                    *tween_entity,
+                    &mut tween,
+                    maybe_tween_name,
+                    &logging_function.0,
+                    &mut commands,
+                );
+            }
+        }
     }
 }
 
