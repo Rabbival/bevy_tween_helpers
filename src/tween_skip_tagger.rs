@@ -26,9 +26,11 @@ pub struct TweenSkipTaggerPlugin;
 
 impl Plugin for TweenSkipTaggerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(TweenEventPlugin::<TweenSkipTagTweenRequest>::default())
-            .add_observer(listen_to_regular_event_trigger)
-            .add_observer(listen_to_triggers_from_tweens);
+        app.add_plugins(TweenEventPlugin::<TweenSkipTagTweenRequest>::in_schedule(
+            PostUpdate.intern(),
+        ))
+        .add_observer(listen_to_regular_event_trigger)
+        .add_observer(listen_to_triggers_from_tweens);
     }
 }
 
@@ -104,8 +106,10 @@ mod tests {
 
         let mut app = App::new();
 
-        app.init_resource::<Time>()
-            .add_plugins((DefaultTweenPlugins, TweenSkipTaggerPlugin));
+        app.init_resource::<Time>().add_plugins((
+            DefaultTweenPlugins::<()>::in_schedule(PostUpdate.intern()),
+            TweenSkipTaggerPlugin,
+        ));
 
         let entity_to_move = app
             .world_mut()

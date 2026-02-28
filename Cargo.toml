@@ -12,7 +12,7 @@ keywords = ["bevy", "tween", "tweening"]
 categories = ["game-development"]
 
 [dependencies]
-bevy_tween = { git = "https://github.com/Multirious/bevy_tween", branch = "generic_time_steps" }
+bevy_tween = { git = "https://github.com/Multirious/bevy_tween", branch = "saving_a_copy_so_i_can_keep_working" }
 
 [dependencies.bevy]
 version = "0.18.0"

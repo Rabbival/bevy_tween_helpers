@@ -90,7 +90,8 @@ mod tests {
 
         let mut app = App::new();
 
-        app.init_resource::<Time>().add_plugins(DefaultTweenPlugins);
+        app.init_resource::<Time>()
+            .add_plugins(DefaultTweenPlugins::<()>::in_schedule(PostUpdate.intern()));
 
         let entity_to_move = app
             .world_mut()

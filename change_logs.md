@@ -14,6 +14,9 @@
   * `TweenTargetRemoverOnSchedule`
 * Make `handle_tween_priority_on_spawn` observer instead of scheduled system
 * Replace `TweenTargetOf` with `TargetingTweens` as a single entity may be targetted by many tweens
+* `TweenSkipTaggerPlugin` now only registers the tween event on `PostUpdate`. If you want it to listen to requests from tweens of time runners that run on other schedules, you'd have to `.add_plugins(TweenEventPlugin::<TweenSkipTagTweenRequest>::in_schedule(
+     YOUR_SCHEDULE_INTERN_HERE
+  ))`
 * Update to bevy 0.18
 
 ### 0.4.0
