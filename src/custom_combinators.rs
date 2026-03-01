@@ -1,6 +1,6 @@
 use std::time::Duration;
 
-use bevy_time_runner::TimeSpan;
+use bevy_time_runner_alt::TimeSpan;
 use combinator::AnimationCommands;
 
 use crate::prelude::*;

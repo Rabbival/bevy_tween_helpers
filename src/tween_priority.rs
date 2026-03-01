@@ -1,8 +1,8 @@
 use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
 use bevy::prelude::Component;
-use bevy_tween::bevy_time_runner::TimeContext;
-use bevy_tween::prelude::ComponentTween;
+use bevy_tween_alt::bevy_time_runner_alt::TimeContext;
+use bevy_tween_alt::prelude::ComponentTween;
 
 /// When there's a conflict between two existing tweens of the same type
 /// (say, two position tweens on the same entity)

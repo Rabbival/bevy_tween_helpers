@@ -1,6 +1,6 @@
 use crate::{plugin_for_implementors_of_trait, prelude::*, read_single_field_variant};
 use bevy::platform::collections::HashSet;
-use bevy_tween::bevy_time_runner::TimeContext;
+use bevy_tween_alt::bevy_time_runner_alt::TimeContext;
 use tween::{ComponentTween, TargetComponent};
 
 #[derive(Component, Deref, DerefMut)]

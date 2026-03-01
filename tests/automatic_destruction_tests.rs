@@ -1,7 +1,7 @@
-use bevy_tween::combinator::{AnimationBuilderExt, TargetState, event, sequence};
-use bevy_tween::interpolation::EaseKind;
-use bevy_tween::prelude::{Interpolator, IntoTarget};
-use bevy_tween::tween::TargetComponent;
+use bevy_tween_alt::combinator::{event, sequence, AnimationBuilderExt, TargetState};
+use bevy_tween_alt::interpolation::EaseKind;
+use bevy_tween_alt::prelude::{Interpolator, IntoTarget};
+use bevy_tween_alt::tween::TargetComponent;
 use bevy_tween_helpers::prelude::*;
 use std::time::Duration;
 

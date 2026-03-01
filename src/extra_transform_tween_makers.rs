@@ -1,5 +1,5 @@
 use crate::prelude::*;
-use bevy_tween::{
+use bevy_tween_alt::{
     combinator::TransformTargetState,
     interpolate::{Rotation, Scale, Translation},
     prelude::ComponentTween,
@@ -66,7 +66,7 @@ pub fn rotation_delta_to(to: Quat) -> impl Fn(&mut Quat) -> Rotation {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy_tween::{combinator::parallel, prelude::*};
+    use bevy_tween_alt::{combinator::parallel, prelude::*};
 
     #[test]
     fn test_translation_delta_to_1() {

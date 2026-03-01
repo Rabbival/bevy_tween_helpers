@@ -1,6 +1,6 @@
 use crate::prelude::*;
-use bevy_tween::prelude::ComponentTween;
-use bevy_tween::tween::TargetComponent;
+use bevy_tween_alt::prelude::ComponentTween;
+use bevy_tween_alt::tween::TargetComponent;
 
 /// extracts the tweens targets as a vec
 pub fn get_tween_targets<T: Sendable>(tween: &ComponentTween<T>) -> Vec<Entity> {

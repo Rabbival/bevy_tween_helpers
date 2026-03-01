@@ -1,4 +1,4 @@
-use crate::prelude::bevy_time_runner::{TimeContext, TimeRunner};
+use crate::prelude::bevy_time_runner_alt::{TimeContext, TimeRunner};
 use crate::prelude::*;
 
 pub struct EventAnimationParentTaggerPlugin;

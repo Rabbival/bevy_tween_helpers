@@ -1,6 +1,6 @@
-use crate::prelude::bevy_time_runner::TimeRunner;
+use crate::prelude::bevy_time_runner_alt::TimeRunner;
 use crate::prelude::*;
-use bevy_tween::tween::{SkipTween, TweenInterpolationValue};
+use bevy_tween_alt::tween::{SkipTween, TweenInterpolationValue};
 
 #[derive(Debug, Clone, Message, EntityEvent)]
 pub struct TweenSkipTagRequest {
@@ -92,7 +92,7 @@ fn tag_or_untag_to_skip_by_request_type(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use bevy_tween::prelude::*;
+    use bevy_tween_alt::prelude::*;
 
     #[test]
     fn test_skip_tagging_and_untagging() {

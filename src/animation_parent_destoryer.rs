@@ -1,8 +1,8 @@
 use crate::plugin_for_implementors_of_trait;
 use crate::prelude::*;
-use bevy_time_runner::TimeRunnerEnded;
-use bevy_tween::bevy_time_runner::{TimeContext, TimeRunner};
-use bevy_tween::prelude::ComponentTween;
+use bevy_time_runner_alt::TimeRunnerEnded;
+use bevy_tween_alt::bevy_time_runner_alt::{TimeContext, TimeRunner};
+use bevy_tween_alt::prelude::ComponentTween;
 
 #[derive(Component)]
 pub struct AnimationParentToDestroyIfOnlyHasEventsLeft;

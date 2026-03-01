@@ -66,7 +66,7 @@ pub mod prelude {
     pub use crate::utilities::{system_sets::*, trait_unions::*};
     pub use bevy::ecs::schedule::{InternedScheduleLabel, ScheduleLabel};
     pub use bevy::{platform::collections::HashMap, prelude::*};
-    pub use bevy_tween::*;
+    pub use bevy_tween_alt::*;
     pub use std::marker::PhantomData;
     pub use tween_event::*;
 }

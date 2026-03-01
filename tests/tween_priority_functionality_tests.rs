@@ -1,8 +1,8 @@
 use bevy::ecs::system::ScheduleSystem;
-use bevy_tween::combinator::AnimationBuilderExt;
-use bevy_tween::interpolation::EaseKind;
-use bevy_tween::prelude::{Interpolator, IntoTarget};
-use bevy_tween::tween::ComponentTween;
+use bevy_tween_alt::combinator::AnimationBuilderExt;
+use bevy_tween_alt::interpolation::EaseKind;
+use bevy_tween_alt::prelude::{Interpolator, IntoTarget};
+use bevy_tween_alt::tween::ComponentTween;
 use bevy_tween_helpers::prelude::*;
 use std::time::Duration;
 
