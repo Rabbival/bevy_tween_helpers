@@ -2,6 +2,10 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.5.0
+
+* Update to bevy 0.18 and bevy_tween 0.12
+
 ### 0.4.0
 
 * Add `TweenSkipTaggerPlugin` for automatic skipping of entire animations instead of tagging each tween manually
