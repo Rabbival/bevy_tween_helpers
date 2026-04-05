@@ -107,8 +107,10 @@ mod tests {
 
         let mut app = App::new();
 
-        app.init_resource::<Time>()
-            .add_plugins((DefaultTweenPlugins, TweenSkipTaggerPlugin));
+        app.init_resource::<Time>().add_plugins((
+            DefaultTweenPlugins::<()>::in_schedule(PostUpdate.intern()),
+            TweenSkipTaggerPlugin,
+        ));
 
         let entity_to_move = app
             .world_mut()

@@ -66,6 +66,7 @@ pub fn rotation_delta_to(to: Quat) -> impl Fn(&mut Quat) -> Rotation {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use bevy::ecs::schedule::ScheduleLabel;
     use bevy_tween::{combinator::parallel, prelude::*};
 
     #[test]
@@ -90,7 +91,8 @@ mod tests {
 
         let mut app = App::new();
 
-        app.init_resource::<Time>().add_plugins(DefaultTweenPlugins);
+        app.init_resource::<Time>()
+            .add_plugins(DefaultTweenPlugins::<()>::in_schedule(PostUpdate.intern()));
 
         let entity_to_move = app
             .world_mut()
