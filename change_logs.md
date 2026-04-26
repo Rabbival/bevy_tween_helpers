@@ -2,7 +2,7 @@
 
 [(Click me to go back to the main readme)](README.md)
 
-### unreleased
+### 0.6.0
 
 * Make `TweenTargetOf` track multiple tweens (fix)
 
