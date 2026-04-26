@@ -2,6 +2,10 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### unreleased
+
+* Make `TweenTargetOf` track multiple tweens (fix)
+
 ### 0.5.0
 
 * Update to bevy 0.18 and bevy_tween 0.12

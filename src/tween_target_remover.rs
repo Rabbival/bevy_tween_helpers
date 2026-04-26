@@ -1,8 +1,8 @@
 use crate::{plugin_for_implementors_of_trait, prelude::*, read_single_field_variant};
 use tween::{ComponentTween, TargetComponent};
 
-#[derive(Component)]
-pub struct TweenTargetOf(pub Entity);
+#[derive(Component, Deref, DerefMut)]
+pub struct TweenTargetOf(pub Vec<Entity>);
 
 plugin_for_implementors_of_trait!(TweenTargetRemover, Sendable);
 
@@ -15,7 +15,11 @@ impl<T: Sendable> Plugin for TweenTargetRemover<T> {
             .add_systems(
                 Update,
                 (
-                    track_newborn_tween_targets::<T>
+                    (
+                        track_newborn_tween_targets::<T>,
+                        track_destroyed_tween_targets::<T>,
+                    )
+                        .chain()
                         .in_set(TweenHelpersSystemSet::PreTargetRemoval),
                     listen_to_target_removal_requests::<T>
                         .in_set(TweenHelpersSystemSet::TargetRemoval),
@@ -26,12 +30,37 @@ impl<T: Sendable> Plugin for TweenTargetRemover<T> {
 
 fn track_newborn_tween_targets<T: Sendable>(
     newborn_tweens: Query<(&ComponentTween<T>, Entity), Added<ComponentTween<T>>>,
+    mut target_of_query: Query<&mut TweenTargetOf>,
     mut commands: Commands,
 ) {
     for (tween, tween_entity) in &newborn_tweens {
         for target in get_tween_targets(tween) {
-            if let Ok(mut entity_commands) = commands.get_entity(target) {
-                entity_commands.try_insert(TweenTargetOf(tween_entity));
+            if let Ok(mut target_of) = target_of_query.get_mut(target) {
+                target_of.push(tween_entity);
+            } else {
+                commands
+                    .entity(target)
+                    .try_insert(TweenTargetOf(vec![tween_entity]));
+            }
+        }
+    }
+}
+
+fn track_destroyed_tween_targets<T: Sendable>(
+    mut destroyed_tweens: RemovedComponents<ComponentTween<T>>,
+    tweens_of_type: Query<&ComponentTween<T>>,
+    mut target_of_query: Query<&mut TweenTargetOf>,
+    mut commands: Commands,
+) {
+    for tween_entity in destroyed_tweens.read() {
+        if let Ok(tween) = tweens_of_type.get(tween_entity) {
+            for target in get_tween_targets(tween) {
+                if let Ok(mut target_of) = target_of_query.get_mut(target) {
+                    target_of.retain(|tracked_tween_entity| *tracked_tween_entity != tween_entity);
+                    if target_of.is_empty() {
+                        commands.entity(target).try_remove::<TweenTargetOf>();
+                    }
+                }
             }
         }
     }
