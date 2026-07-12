@@ -54,7 +54,10 @@ where
     fn build(&self, app: &mut App) {
         app.add_systems(
             self.schedule.clone(),
-            listen_to_target_removal_requests::<T, TimeCtx>
+            (
+                listen_to_target_removal_requests::<T, TimeCtx>,
+                listen_to_removal_from_tween_of_type_requests::<T, TimeCtx>,
+            )
                 .in_set(TweenHelpersSystemSet::TargetRemoval),
         );
     }
@@ -121,13 +124,47 @@ fn on_remove_targets_from_tweens_of_type<T: Sendable>(
             for tween_entity in targeting_tweens.iter() {
                 if let Ok((mut tween, maybe_tween_name)) = tweens_of_type.get_mut(*tween_entity) {
                     remove_target_and_destroy_if_has_none(
-                        &trigger.targets,
+                        &vec![*target],
                         *tween_entity,
                         &mut tween,
                         maybe_tween_name,
                         &logging_function.0,
                         &mut commands,
                     );
+                }
+            }
+        }
+    }
+}
+
+fn listen_to_removal_from_tween_of_type_requests<T, TimeCtx>(
+    mut removal_request_listener: MessageReader<RemoveTargetsFromAllTweensOfType<T>>,
+    target_query: Query<&TargetingTweens>,
+    mut tweens_of_type: Query<(&mut ComponentTween<T>, &ChildOf, Option<&Name>)>,
+    time_step_marked: Query<(), With<TimeContext<TimeCtx>>>,
+    logging_function: Res<TweeningLoggingFunction>,
+    mut commands: Commands,
+) where
+    T: Sendable,
+    TimeCtx: Default + Send + Sync + 'static,
+{
+    for request in removal_request_listener.read() {
+        for target in &request.targets {
+            if let Ok(targeting_tweens) = target_query.get(*target) {
+                for tween_entity in targeting_tweens.iter() {
+                    if let Ok((mut tween, ChildOf(parent), maybe_tween_name)) =
+                        tweens_of_type.get_mut(*tween_entity)
+                        && time_step_marked.contains(*parent)
+                    {
+                        remove_target_and_destroy_if_has_none(
+                            &vec![*target],
+                            *tween_entity,
+                            &mut tween,
+                            maybe_tween_name,
+                            &logging_function.0,
+                            &mut commands,
+                        );
+                    }
                 }
             }
         }
