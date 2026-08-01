@@ -47,6 +47,7 @@ An example for registering the plugins into your app would be:
 
 | `bevy` | `bevy_tween_helpers` |
 |--------|----------------------|
+| 0.18   | 0.5 - 0.6            |
 | 0.17   | 0.2 - 0.4            |
 | 0.16   | 0.1                  |
 
