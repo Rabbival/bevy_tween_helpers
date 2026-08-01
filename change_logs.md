@@ -2,6 +2,11 @@
 
 [(Click me to go back to the main readme)](README.md)
 
+### 0.7.0
+
+* Make "x11" a feature so that one would be able to use the crate without it
+* Update bevy version to 0.19 and bevy_tween to 0.13
+
 ### 0.6.0
 
 * Make `TweenTargetOf` track multiple tweens (fix)
